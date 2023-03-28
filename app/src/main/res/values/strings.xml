@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">LocationTesting</string>
+    <string name="locationInfo">String.valueOf(MainActivity.latitude) + " " + String.valueOf(MainActivity.longitude)</string>
+    <string name="request_location_updates">Set Location</string>
+    <string name="button">Scan</string>
+</resources>
