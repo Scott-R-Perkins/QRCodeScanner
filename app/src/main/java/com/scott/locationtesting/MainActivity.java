@@ -28,7 +28,13 @@ import com.google.zxing.BarcodeFormat;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.LatLngBounds; //Probs still need these
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
@@ -63,9 +69,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     PERMISSIONS_REQUEST_LOCATION);
         }
         //Once permissions have been granted, update user location
-        if(currentLocation == null){
+       /* if (currentLocation == null) {
             startLocationUpdates();
-        }
+        }*/
 
         //Open QR scanner
         //This needs to be adjusted so it can't be opened before location has been obtained
@@ -148,8 +154,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     classSWBound.setLongitude(Double.parseDouble(classLocations[3]));
                     //builder.setMessage("NE Lat: " + Double.parseDouble(classLocations[0]) + " \nNE Lng: " + Double.parseDouble(classLocations[1]) + "\nSW Lat: " + Double.parseDouble(classLocations[2])
                             //+ " \nSW Lng: " + Double.parseDouble(classLocations[3]));
-                    builder.setMessage("NE Lat: " + Double.parseDouble(classLocations[0]) + "\nNE Lng: " + Double.parseDouble(classLocations[1]) + "\nSW Lat: " + Double.parseDouble(classLocations[2])
-                            + "\nSW Lng: " + Double.parseDouble(classLocations[3]) + "\nClass Code: " +  classLocations[4] + "\nClass Time: " + classLocations[5] + "\nClass Day: " + classLocations[6]);
+
+
+                    //This one
+                    //builder.setMessage("NE Lat: " + Double.parseDouble(classLocations[0]) + "\nNE Lng: " + Double.parseDouble(classLocations[1]) + "\nSW Lat: " + Double.parseDouble(classLocations[2])
+                            //+ "\nSW Lng: " + Double.parseDouble(classLocations[3]) + "\nClass Code: " +  classLocations[4] + "\nClass Time: " + classLocations[5] + "\nClass Day: " + classLocations[6]);
 
 
                     //maybe hide the scan button/make it unclickable until user location is set/isnt null
@@ -160,6 +169,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                     //this is where I'll check if the user is within the bounds or distanceTo location is close enough
                     //then send to another method to handle the http post request
+                    String classSession = null;
+                    sendIdToWebApp(classSession);
 
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
@@ -178,6 +189,51 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         }).show();
     });
+
+    private void sendIdToWebApp(String classSession) {
+        classSession = "212";
+        StringBuilder response = new StringBuilder();
+        try {
+            URL url = new URL("https://httpbin.org/post");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            String postData = "2013004474"; //This would also send the class session that is passed into the method from the QR code
+            byte[] postDataBytes = postData.getBytes("UTF-8");
+
+            OutputStream outputStream = conn.getOutputStream();
+            outputStream.write(postDataBytes);
+            outputStream.flush();
+            outputStream.close();
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+            }
+            conn.disconnect();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Result");
+        builder.setMessage("Info sent: " + "2013004474" + classSession);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        }).show();
+
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
