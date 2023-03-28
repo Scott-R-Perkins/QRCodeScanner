@@ -54,17 +54,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-       /* if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // If we don't have permission, request it
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_LOCATION);
-        }
-        if(currentLocation == null){
-            startLocationUpdates();
-        }*/
-
+        //Checks if application has location permissions
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // If we don't have permission, request it
@@ -72,14 +62,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_LOCATION);
         }
+        //Once permissions have been granted, update user location
         if(currentLocation == null){
             startLocationUpdates();
         }
 
-
-
-
-
+        //Open QR scanner
+        //This needs to be adjusted so it can't be opened before location has been obtained
         scanButton = findViewById(R.id.button_Scan);
         scanButton.setOnClickListener(V ->
         {
@@ -192,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_REQUEST_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, start location updates
