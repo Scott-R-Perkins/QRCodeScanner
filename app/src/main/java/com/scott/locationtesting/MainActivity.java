@@ -54,6 +54,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+       /* if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // If we don't have permission, request it
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_LOCATION);
+        }
+        if(currentLocation == null){
+            startLocationUpdates();
+        }*/
+
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // If we don't have permission, request it
@@ -61,10 +72,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_LOCATION);
         }
-
         if(currentLocation == null){
             startLocationUpdates();
         }
+
+
+
+
 
         scanButton = findViewById(R.id.button_Scan);
         scanButton.setOnClickListener(V ->
@@ -175,5 +189,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         }).show();
     });
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == PERMISSIONS_REQUEST_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, start location updates
+                startLocationUpdates();
+            } else {
+                // Permission denied, show an appropriate message
+                Toast.makeText(this, "Location permission is required for this feature.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
 
