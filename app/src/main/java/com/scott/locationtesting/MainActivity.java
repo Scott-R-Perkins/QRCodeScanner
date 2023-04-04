@@ -75,6 +75,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         //Open QR scanner
         //This needs to be adjusted so it can't be opened before location has been obtained
+        //Basically just disable the onClick/Grey out the button
+        //Could also set a global boolean for "locationObtained" which, when the onLocationChanged method runs and sets the location is set to true
+        //the scan button will have a method to return if locationObtained is false. Or could just return is currLocation is null
         scanButton = findViewById(R.id.button_Scan);
         scanButton.setOnClickListener(V ->
         {
@@ -139,6 +142,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), result -> {
+        //this AlertDialog probably isnt needed, it was originally there to check the scanner was reading information correctly, it could still be used to double check the right information
+        //is being read after we finalize what the QR string will be
+        //Once removed, this method *should* be a lot smaller
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Result");
         if (result != null && result.getContents() != null) {
@@ -190,6 +196,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }).show();
     });
 
+
+    //Currently sends a hardcoded class session and student ID to the httpostreq, which is currently set to httpbin
+    //Final version should: Take in classSession string parsed from the QR code, read the studentID from either SharedPreferences or local DB, send these as an httppostreq to our webapp
     private void sendIdToWebApp(String classSession) {
         classSession = "212";
         StringBuilder response = new StringBuilder();
