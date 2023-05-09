@@ -18,7 +18,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.919" />
 
-    <Button
+<!--Should no longer need this button as it now auto-searches for location on start-->
+<!--    <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -29,7 +30,7 @@
         app:layout_constraintEnd_toEndOf="@+id/textViewBasic"
         app:layout_constraintHorizontal_bias="0.748"
         app:layout_constraintStart_toStartOf="@+id/textViewBasic"
-        tools:ignore="MissingConstraints" />
+        tools:ignore="MissingConstraints" />-->
 
     <Button
         android:id="@+id/button_Scan"
