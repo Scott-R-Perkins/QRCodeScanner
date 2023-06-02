@@ -3,4 +3,9 @@
     <string name="locationInfo">String.valueOf(MainActivity.latitude) + " " + String.valueOf(MainActivity.longitude)</string>
     <string name="request_location_updates">Set Location</string>
     <string name="button">Scan</string>
+    <string name="bg_institute">bg_institute</string>
+    <string name="user_image">userImage</string>
+    <string name="student_name">Student Name</string>
+    <string name="institute_name">Institute Name</string>
+    <string name="location_fetch_msg">Location Fetched</string>
 </resources>
