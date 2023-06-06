@@ -50,6 +50,8 @@ TODO: Use the figma wireframe to design the other intents, get navigation workin
 //    //  recyclerViews for the local attendance log and local db storage for storing things such as the class
 //    //  session/user loc and student ID.
 
+// TODO: 6/06/2023 Find out why the scanner stopped working for QR's. Fuck 
+
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
@@ -203,8 +205,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     //this is where I'll check if the user is within the bounds or distanceTo location
                     // is close enough
                     //These are set from the 3rd/5th member, will be obtaining these from the QR code
-                    double swLat = 34.0522, swLong = -118.2437;  // Los Angeles
-                    double neLat = 40.7128, neLong = -74.0060;  // New York
+                    double swLat = -46.414031, swLong = 168.355548;  // I Block
+                    double neLat = -46.413855, neLong = 168.355941;  // I Block
                     double bufferInMeters = 20;
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
@@ -218,6 +220,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         int classId = 0; //This may not need to be passed/expected in the method, once I figure
                         //out saving information to the local db
                         sendIdToWebApp(classId);
+                        AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
+                        notAtClassBox.setTitle("Cor' Blimey mate");
+                        notAtClassBox.setMessage("You were within the bound");
+                        notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).show();
                     }
                     else {
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
