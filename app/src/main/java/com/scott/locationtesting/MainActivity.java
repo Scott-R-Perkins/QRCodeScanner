@@ -28,10 +28,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
 /*Make sure to go to the build.gradle(Module:app) file and check for version updates for dependencies, then also sync the gradle file.
 Should move some more of the functionality into their own methods
-Need to move *some* of the stuff here to a different activity, basically just the scan button+functionaliy
+Need to move *some* of the stuff here to a different activity, basically just the scan button+functionally
 TODO: Use the figma wireframe to design the other intents, get navigation working, then work on storing student info (ID/Name/Whatever else is needed), then try and make it work with web app, when that gets made.
 */
 
@@ -54,8 +55,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textViewLocation = findViewById(R.id.textViewBasic);
-        textViewLocation.setText("Waiting for location...");
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -68,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     PERMISSIONS_REQUEST_LOCATION);
         }
         //Once permissions have been granted, update user location
+        //this may not be needed anymore
        /* if (currentLocation == null) {
             startLocationUpdates();
         }*/
@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         //Basically just disable the onClick/Grey out the button
         //Could also set a global boolean for "locationObtained" which, when the onLocationChanged method runs and sets the location is set to true
         //the scan button will have a method to return if locationObtained is false. Or could just return is currLocation is null
+
         scanButton = findViewById(R.id.button_Scan);
         scanButton.setOnClickListener(V ->
         {
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), result -> {
-        //this AlertDialog probably isnt needed, it was originally there to check the scanner was reading information correctly, it could still be used to double check the right information
+        //this AlertDialog probably isn't needed, it was originally there to check the scanner was reading information correctly, it could still be used to double check the right information
         //is being read after we finalize what the QR string will be
         //Once removed, this method *should* be a lot smaller
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -166,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             //+ "\nSW Lng: " + Double.parseDouble(classLocations[3]) + "\nClass Code: " +  classLocations[4] + "\nClass Time: " + classLocations[5] + "\nClass Day: " + classLocations[6]);
 
 
-                    //maybe hide the scan button/make it unclickable until user location is set/isnt null
+                    //maybe hide the scan button/make it not clickable until user location is set/isn't null
                     //Probably have a global boolean for locationSet, if false, returns from the scan method, if true it scans. Init false, set true after location set
                     //Also change button to grey when false, colour when true
 
@@ -174,8 +175,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                     //this is where I'll check if the user is within the bounds or distanceTo location is close enough
                     //then send to another method to handle the http post request
-                    String classSession = null;
-                    sendIdToWebApp(classSession);
+                    int classId = 0;
+                    sendIdToWebApp(classId);
 
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
@@ -198,8 +199,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     //Currently sends a hardcoded class session and student ID to the httpostreq, which is currently set to httpbin
     //Final version should: Take in classSession string parsed from the QR code, read the studentID from either SharedPreferences or local DB, send these as an httppostreq to our webapp
-    private void sendIdToWebApp(String classSession) {
-        classSession = "212";
+    private void sendIdToWebApp(int classId) {
         StringBuilder response = new StringBuilder();
         try {
             URL url = new URL("https://httpbin.org/post");
@@ -208,8 +208,19 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-            String postData = "2013004474"; //This would also send the class session that is passed into the method from the QR code
+
+
+            classId= 2;
+            String studentId = "4";
+            String status = "present";
+            String postData = "classId=" + URLEncoder.encode(Integer.toString(classId), "UTF-8")
+                    + "&studentId=" + URLEncoder.encode(studentId, "UTF-8")
+                    + "&status=" + URLEncoder.encode(status, "UTF-8");
             byte[] postDataBytes = postData.getBytes("UTF-8");
+
+
+            //String postData = "2013004474"; //This would also send the class session that is passed into the method from the QR code
+            //byte[] postDataBytes = postData.getBytes("UTF-8");
 
             OutputStream outputStream = conn.getOutputStream();
             outputStream.write(postDataBytes);
@@ -222,6 +233,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 String line;
                 while ((line = reader.readLine()) != null) {
                     response.append(line);
+                    AlertDialog.Builder responseBuilder = new AlertDialog.Builder(MainActivity.this);
+                    responseBuilder.setTitle("Response from backend");
+                    responseBuilder.setMessage(response.toString());
+                    responseBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    }).show();
                 }
                 reader.close();
             }
@@ -233,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Result");
-        builder.setMessage("Info sent: " + "2013004474" + classSession);
+        builder.setMessage("Info sent: " + "2013004474" + classId);
         builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
