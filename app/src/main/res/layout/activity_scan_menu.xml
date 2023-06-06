@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    tools:context=".ScanActivity"
     android:orientation="vertical">
 
 
@@ -82,7 +82,7 @@
                 android:text="@string/button"
                 tools:ignore="MissingConstraints" />
 
-    </RelativeLayout>
+        </RelativeLayout>
 
     </androidx.cardview.widget.CardView>
 
@@ -118,6 +118,23 @@
 
 
     </androidx.cardview.widget.CardView>
+
+
+
+
+    <!--Should no longer need this button as it now auto-searches for location on start-->
+    <!--    <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:onClick="startLocationUpdates"
+            android:text="@string/request_location_updates"
+            app:layout_constraintBottom_toTopOf="@+id/textViewBasic"
+            app:layout_constraintEnd_toEndOf="@+id/textViewBasic"
+            app:layout_constraintHorizontal_bias="0.748"
+            app:layout_constraintStart_toStartOf="@+id/textViewBasic"
+            tools:ignore="MissingConstraints" />-->
 
 
 
