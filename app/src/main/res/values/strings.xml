@@ -7,5 +7,5 @@
     <string name="user_image">userImage</string>
     <string name="student_name">Student Name</string>
     <string name="institute_name">Institute Name</string>
-    <string name="location_fetch_msg">Location Fetched</string>
+    <string name="location_fetch_msg">Obtaining location</string>
 </resources>

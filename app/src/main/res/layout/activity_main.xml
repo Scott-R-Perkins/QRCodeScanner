@@ -80,6 +80,7 @@
                 android:layout_centerHorizontal="true"
                 android:drawableLeft="@drawable/baseline_qr_code_scanner_24"
                 android:text="@string/button"
+                android:enabled="false"
                 tools:ignore="MissingConstraints" />
 
     </RelativeLayout>
@@ -109,6 +110,7 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="20dp"
                 android:text="@string/location_fetch_msg"
+                android:textColor="#FF0000"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 tools:ignore="MissingConstraints" />

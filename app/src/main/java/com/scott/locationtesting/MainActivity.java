@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -34,7 +35,20 @@ import java.net.URLEncoder;
 Should move some more of the functionality into their own methods
 Need to move *some* of the stuff here to a different activity, basically just the scan button+functionally
 TODO: Use the figma wireframe to design the other intents, get navigation working, then work on storing student info (ID/Name/Whatever else is needed), then try and make it work with web app, when that gets made.
-*/
+ */
+
+// TODO: 6/06/2023 Find a way to disable the scan button while the location has not been obtained, while also
+//  providing plenty of visual feedback for the user that their location has not yet been obtained.
+
+// TODO: 6/06/2023 Button for users to click to Re-obtain their location should it be in-accurate that the buffer
+//  window doesn't cover it. This may not need to be done as it should continue to get location updates
+
+// TODO: 6/06/2023 Work w/ Rowan to make sure the connection to the backend is working right and sending the
+//  right information, After this both sections are separate and I can focus on the mobile app
+
+// TODO: 6/06/2023 Create the rest of the Activities and link them all together (app bar or nah?) Look into
+//    //  recyclerViews for the local attendance log and local db storage for storing things such as the class
+//    //  session/user loc and student ID.
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
@@ -43,14 +57,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final int PERMISSIONS_REQUEST_LOCATION = 1;
     private LocationManager locationManager;
     private Location currentLocation = null;
-    private TextView textViewLocation;
     private boolean isLocationUpdatesEnabled = false;
 
 
     private Button scanButton;
 
 
-    @SuppressLint("SetTextI18n")
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,11 +79,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_LOCATION);
         }
-        //Once permissions have been granted, update user location
-        //this may not be needed anymore
-       /* if (currentLocation == null) {
-            startLocationUpdates();
-        }*/
 
         //Open QR scanner
         //This needs to be adjusted so it can't be opened before location has been obtained
@@ -81,7 +89,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         scanButton = findViewById(R.id.button_Scan);
         scanButton.setOnClickListener(V ->
         {
-            scanCode();
+            if(scanButton.isEnabled()){
+                scanCode();
+            }
+            else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Warning");
+                builder.setMessage("Please wait until your location has been set to scan.");
+                builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }).show();
+            }
         });
 
 
@@ -107,10 +128,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     // Stop location updates when the button is released
-    public void stopLocationUpdates(View view) {
-        locationManager.removeUpdates(this);
-        isLocationUpdatesEnabled = false;
-    }
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -119,8 +136,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         // Handle location updates here
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
-        textViewLocation.setText("Lat: " + latitude + ", Lng: " + longitude);
+        TextView tVLocation = findViewById(R.id.textViewBasic2);
+        tVLocation.setText("Location obtained");
+        tVLocation.setTextColor(Color.rgb(0,200,0));
+        // Look at adding some sort of loader to indicate to users that it is attempting to find the users location
+        scanButton.setEnabled(true);
         Toast.makeText(this, "Lat: " + latitude + ", Long: " + longitude, Toast.LENGTH_SHORT).show();
+    }
+
+    public void stopLocationUpdates(View view) {
+        locationManager.removeUpdates(this);
+        isLocationUpdatesEnabled = false;
     }
 
 
@@ -146,7 +172,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         //is being read after we finalize what the QR string will be
         //Once removed, this method *should* be a lot smaller
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Result");
+        builder.setTitle("Meme"); //This is the one that opens when Scanner is closed without Scanning (it might
+            //also open when the QR is scanned, will need to check this)
         if (result != null && result.getContents() != null) {
             String[] classLocations = result.getContents().split(",");
             if (classLocations.length >= 4) {
@@ -173,10 +200,37 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                     //Need to add the override methods for onPause/Resume/Start to stop/start location tracking
 
-                    //this is where I'll check if the user is within the bounds or distanceTo location is close enough
-                    //then send to another method to handle the http post request
-                    int classId = 0;
-                    sendIdToWebApp(classId);
+                    //this is where I'll check if the user is within the bounds or distanceTo location
+                    // is close enough
+                    //These are set from the 3rd/5th member, will be obtaining these from the QR code
+                    double swLat = 34.0522, swLong = -118.2437;  // Los Angeles
+                    double neLat = 40.7128, neLong = -74.0060;  // New York
+                    double bufferInMeters = 20;
+                    GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
+
+                    double userLat = currentLocation.getLatitude(),
+                            userLong = currentLocation.getLongitude();  // userLocation infomation
+                    boolean isUserInGeoBox = geoBox.contains(userLat, userLong);
+
+                    //If true that the user is in the GeoBox
+                    if(isUserInGeoBox){
+                        //then send to another method to handle the http post request
+                        int classId = 0; //This may not need to be passed/expected in the method, once I figure
+                        //out saving information to the local db
+                        sendIdToWebApp(classId);
+                    }
+                    else {
+                        AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
+                        notAtClassBox.setTitle("Cor' Blimey mate");
+                        notAtClassBox.setMessage("Get to class you sneaky little shit, However, if you " +
+                                "are there try clicking the 'Re-obtain location' button and try again");
+                        notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).show();
+                    }
 
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
@@ -252,9 +306,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             e.printStackTrace();
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Result");
+        builder.setTitle("Meme");
         builder.setMessage("Info sent: " + "2013004474" + classId);
-        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Meme", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.dismiss();
@@ -272,6 +326,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startLocationUpdates();
             } else {
                 // Permission denied, show an appropriate message
+                //May need to remove the toast, as it doesnt align with material design principals
                 Toast.makeText(this, "Location permission is required for this feature.", Toast.LENGTH_SHORT).show();
             }
         }
