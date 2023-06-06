@@ -50,7 +50,8 @@ TODO: Use the figma wireframe to design the other intents, get navigation workin
 //    //  recyclerViews for the local attendance log and local db storage for storing things such as the class
 //    //  session/user loc and student ID.
 
-// TODO: 6/06/2023 Find out why the scanner stopped working for QR's. Fuck 
+// TODO: 6/06/2023 Find out why the scanner stopped working for QR's. Fuck
+// Think this was just because I was scanning a code that wasnt 4 fields separated by commas
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
@@ -83,10 +84,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
 
         //Open QR scanner
-        //This needs to be adjusted so it can't be opened before location has been obtained
-        //Basically just disable the onClick/Grey out the button
-        //Could also set a global boolean for "locationObtained" which, when the onLocationChanged method runs and sets the location is set to true
-        //the scan button will have a method to return if locationObtained is false. Or could just return is currLocation is null
 
         scanButton = findViewById(R.id.button_Scan);
         scanButton.setOnClickListener(V ->
@@ -127,6 +124,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000L, 10F, this);
             isLocationUpdatesEnabled = true;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startLocationUpdates();
     }
 
     // Stop location updates when the button is released
@@ -209,10 +212,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     double bufferInMeters = 20;
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
-                    //double userLat = currentLocation.getLatitude(),
-                           // userLong = currentLocation.getLongitude();  // userLocation infomation
-                    //boolean isUserInGeoBox = geoBox.contains(userLat, userLong);
-                    boolean isUserInGeoBox = geoBox.contains(-46.41259003770244, 168.3529852505183);
+                    double userLat = currentLocation.getLatitude(),
+                          userLong = currentLocation.getLongitude();  // userLocation infomation
+                    boolean isUserInGeoBox = geoBox.contains(userLat, userLong);
+                    //Should be working, just not in the J Block because of a lack of asbestos
+                    //boolean isUserInGeoBox = geoBox.contains(-46.41259003770244, 168.3529852505183);
 
                     //If true that the user is in the GeoBox
                     if(isUserInGeoBox){
