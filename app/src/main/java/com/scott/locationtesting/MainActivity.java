@@ -24,12 +24,23 @@ import androidx.core.content.ContextCompat;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /*Make sure to go to the build.gradle(Module:app) file and check for version updates for dependencies, then also sync the gradle file.
 Should move some more of the functionality into their own methods
@@ -39,19 +50,24 @@ TODO: Use the figma wireframe to design the other intents, get navigation workin
 
 // TODO: 6/06/2023 Find a way to disable the scan button while the location has not been obtained, while also
 //  providing plenty of visual feedback for the user that their location has not yet been obtained.
+//Done, needs to look cleaner.
 
 // TODO: 6/06/2023 Button for users to click to Re-obtain their location should it be in-accurate that the buffer
 //  window doesn't cover it. This may not need to be done as it should continue to get location updates
+// Maybe? Might not be needed as it should keep updating location.
 
 // TODO: 6/06/2023 Work w/ Rowan to make sure the connection to the backend is working right and sending the
 //  right information, After this both sections are separate and I can focus on the mobile app
+// This needs done still 07/06/2023
 
 // TODO: 6/06/2023 Create the rest of the Activities and link them all together (app bar or nah?) Look into
 //    //  recyclerViews for the local attendance log and local db storage for storing things such as the class
 //    //  session/user loc and student ID.
+// Need to figure out a 3rd activity that makes sense (Home page with buttons for scan+log)
 
 // TODO: 6/06/2023 Find out why the scanner stopped working for QR's. Fuck
 // Think this was just because I was scanning a code that wasnt 4 fields separated by commas
+// Broken again? tf
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
@@ -88,10 +104,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         scanButton = findViewById(R.id.button_Scan);
         scanButton.setOnClickListener(V ->
         {
-            if(scanButton.isEnabled()){
+            if (scanButton.isEnabled()) {
                 scanCode();
-            }
-            else {
+            } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Warning");
                 builder.setMessage("Please wait until your location has been set to scan.");
@@ -132,8 +147,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         startLocationUpdates();
     }
 
-    // Stop location updates when the button is released
-
     @SuppressLint("SetTextI18n")
     @Override
     public void onLocationChanged(Location location) {
@@ -143,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         double longitude = location.getLongitude();
         TextView tVLocation = findViewById(R.id.textViewBasic2);
         tVLocation.setText("Location obtained");
-        tVLocation.setTextColor(Color.rgb(0,200,0));
+        tVLocation.setTextColor(Color.rgb(0, 200, 0));
         // Look at adding some sort of loader to indicate to users that it is attempting to find the users location
         scanButton.setEnabled(true);
         Toast.makeText(this, "Lat: " + latitude + ", Long: " + longitude, Toast.LENGTH_SHORT).show();
@@ -174,58 +187,58 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), result -> {
         if (result != null && result.getContents() != null) {
-            String[] classLocations = result.getContents().split(",");
-            if (classLocations.length >= 4) {
+            //this is where the Code is read and things need to be parsed out + added to the localDB
+            //Need to figure out how we plan to
+            String[] QRContents = result.getContents().split(",");
+            if (QRContents.length >= 1) {
                 try {
-                    Location classNEBound = new Location("");
-                    classNEBound.setLatitude(Double.parseDouble(classLocations[0]));
-                    classNEBound.setLongitude(Double.parseDouble(classLocations[1]));
-
-                    Location classSWBound = new Location("");
-                    classSWBound.setLatitude(Double.parseDouble(classLocations[2]));
-                    classSWBound.setLongitude(Double.parseDouble(classLocations[3]));
+                    //Need to see if its possible to pause the startLocationUpdates() method onPause(), unless
+                    //      it already is paused by default
 
 
-                    //Some stuff for debugging and checking the QR code is being read correctly.
-                    //builder.setMessage("NE Lat: " + Double.parseDouble(classLocations[0]) + " \nNE Lng: " + Double.parseDouble(classLocations[1]) + "\nSW Lat: " + Double.parseDouble(classLocations[2])
-                            //+ " \nSW Lng: " + Double.parseDouble(classLocations[3]));
-
-
-                    //This one
-                    //builder.setMessage("NE Lat: " + Double.parseDouble(classLocations[0]) + "\nNE Lng: " + Double.parseDouble(classLocations[1]) + "\nSW Lat: " + Double.parseDouble(classLocations[2])
-                          //  + "\nSW Lng: " + Double.parseDouble(classLocations[3]) + "\nClass Code: " +  classLocations[4] + "\nClass Time: " + classLocations[5] + "\nClass Day: " + classLocations[6]);
-
-
-                    //maybe hide the scan button/make it not clickable until user location is set/isn't null
-                    //Probably have a global boolean for locationSet, if false, returns from the scan method, if true it scans. Init false, set true after location set
-                    //Also change button to grey when false, colour when true
-
-                    //Need to add the override methods for onPause/Resume/Start to stop/start location tracking
-
-                    //this is where I'll check if the user is within the bounds or distanceTo location
-                    // is close enough
-                    //These are set from the 3rd/5th member, will be obtaining these from the QR code
+                    //Hard coded class locations for testing
+                    //To get them from the QR code use Double.parseDouble(QRContents[i]) with i replaced by index of where
+                    //value should be.
+                    //This assumes we dont do a different approach for the class locations.
+                    //Potentially could have the app query the DB for a list of classes+their locations onCreate
+                    //Then the QR can just have the class code (IT721) and the mobile app can lookup the local DB
+                    //to find the location data for that class.
+                    //Maybe have it so it scans the QR, sees the class code, checks locally if it has it, if
+                    //not then query the backend for the location info
                     //double swLat = -46.414031, swLong = 168.355548;  // I Block
                     //double neLat = -46.413855, neLong = 168.355941;  // I Block
                     double swLat = -46.412837840239035, swLong = 168.35268081980837;  // J Block
                     double neLat = -46.41239956185158, neLong = 168.35320653275616;  // J Block
                     double bufferInMeters = 20;
+                    //Creating the GeoBox
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
-                    double userLat = currentLocation.getLatitude(),
-                          userLong = currentLocation.getLongitude();  // userLocation infomation
-                    boolean isUserInGeoBox = geoBox.contains(userLat, userLong);
-                    //Should be working, just not in the J Block because of a lack of asbestos
-                    //boolean isUserInGeoBox = geoBox.contains(-46.41259003770244, 168.3529852505183);
+                    //This gets the users location and sets to variables outside the boolean declaration
+                    //Should be working, just not in the J Block/Library because of a lack of asbestos
+                    //double userLat = currentLocation.getLatitude(),
+                    //     userLong = currentLocation.getLongitude();  // userLocation infomation
+
+                    //This one uses non-hardcoded variables that are set outside the boolean declaration
+                    //boolean isUserInGeoBox = geoBox.contains(userLat, userLong);
+
+                    //Could also just do this, variables inside the boolean declaration
+                    //boolean isUserInGeoBox = geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude());
+
+                    //Hardcoded
+                    boolean isUserInGeoBox = geoBox.contains(-46.41258844303534, 168.35331290516348);
 
                     //If true that the user is in the GeoBox
-                    if(isUserInGeoBox){
-                        //then send to another method to handle the http post request
+                    if (isUserInGeoBox) {
+                        //Sends info to sendToWebApi to handle the postrequest
                         int classId = 0; //This may not need to be passed/expected in the method, once I figure
                         //out saving information to the local db
+                        AttendanceApiClient attendanceApiClient = new AttendanceApiClient();
+                        attendanceApiClient.addAttendance(2, 4, "Present");
 
 
-                        sendIdToWebApp(classId);
+                        //sendIdToWebApp(classId);
+                        //postToWebApi.mainTwo();
+
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
                         notAtClassBox.setTitle("Cor' Blimey mate");
                         notAtClassBox.setMessage("You were within the bound");
@@ -236,8 +249,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                 dialogInterface.dismiss();
                             }
                         }).show();
-                    }
-                    else {
+                    } else {
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
                         notAtClassBox.setTitle("Cor' Blimey mate");
                         notAtClassBox.setMessage("Get to class you sneaky little shit, However, if you " +
@@ -263,12 +275,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     });
 
 
+
+
+
+
+
     //Currently sends a hardcoded class session and student ID to the httpostreq, which is currently set to httpbin
     //Final version should: Take in classSession string parsed from the QR code, read the studentID from either SharedPreferences or local DB, send these as an httppostreq to our webapp
     private void sendIdToWebApp(int classId) {
         StringBuilder response = new StringBuilder();
         try {
-            URL url = new URL("https://httpbin.org/post");
+            AlertDialog.Builder rb = new AlertDialog.Builder(MainActivity.this);
+            rb.setTitle("Got to this point");
+            rb.setMessage("meme");
+            rb.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            }).show();
+            URL url = new URL("https://192.168.119.52:5078/api/Attendance?classId2=2&studentId2=4&newAttendanceStatus='Late'");
+
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
@@ -276,17 +303,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 
             //This likely will be pulled from the SQLite DB instead of passed into the method.
-            classId= 2;
+            classId = 2;
             String studentId = "4";
-            String status = "present";
-            String postData = "classId=" + URLEncoder.encode(Integer.toString(classId), "UTF-8")
-                    + "&studentId=" + URLEncoder.encode(studentId, "UTF-8")
-                    + "&status=" + URLEncoder.encode(status, "UTF-8");
-            byte[] postDataBytes = postData.getBytes("UTF-8");
+            String status = "Present";
+            String postData = "classId2=" + URLEncoder.encode(Integer.toString(classId), "UTF-8")
+                    + "studentId2=" + URLEncoder.encode(studentId, "UTF-8")
+                    + "newAttendanceStatus=" + URLEncoder.encode(status, "UTF-8");
+            //byte[] postDataBytes = postData.getBytes("UTF-8");
 
 
             OutputStream outputStream = conn.getOutputStream();
-            outputStream.write(postDataBytes);
+            //outputStream.write(postDataBytes);
+            outputStream.write(null);
             outputStream.flush();
             outputStream.close();
 
@@ -296,10 +324,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 String line;
                 while ((line = reader.readLine()) != null) {
                     response.append(line);
-                    AlertDialog.Builder responseBuilder = new AlertDialog.Builder(MainActivity.this);
-                    responseBuilder.setTitle("Response from backend");
-                    responseBuilder.setMessage(response.toString());
-                    responseBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    AlertDialog.Builder rB = new AlertDialog.Builder(MainActivity.this);
+                    rB.setTitle("Response from backend");
+                    rB.setMessage(response.toString());
+                    rB.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             dialogInterface.dismiss();
@@ -307,22 +335,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     }).show();
                 }
                 reader.close();
+            } else {
+
+                AlertDialog.Builder responseBuilder = new AlertDialog.Builder(MainActivity.this);
+                responseBuilder.setTitle("Response from backend");
+                responseBuilder.setMessage(response.toString());
+                responseBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }).show();
             }
             conn.disconnect();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Meme");
-        builder.setMessage("Info sent: " + "2013004474" + classId);
+        builder.setMessage("Info sent: " + "2013004474 " + classId);
         builder.setPositiveButton("Meme", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.dismiss();
             }
         }).show();
+
 
     }
 
@@ -338,6 +376,79 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 //May need to remove the toast, as it doesnt align with material design principals
                 Toast.makeText(this, "Location permission is required for this feature.", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+}
+
+class postToWebApi{
+    public static final MediaType JSON
+            = MediaType.get("application/json; charset=utf-8");
+
+    OkHttpClient client = new OkHttpClient();
+
+    String post(String url, String json) throws IOException {
+        RequestBody body = RequestBody.create(json, JSON);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            return response.body().string();
+        }
+    }
+    String bowlingJson(String player1, String player2, String player3) {
+        return "{'classId2':'" + player1 + "',"
+                + "'studentId2':'" + player2 + "',"
+                + "'newAttendanceStatus':'" + player3 + "}";
+    }
+
+    public static void mainTwo() throws IOException {
+        postToWebApi example = new postToWebApi();
+        String json = example.bowlingJson("4", "2", "Present");
+        String response = example.post("https://192.168.119.52:5078/api/Attendance", json);
+        System.out.println(response);
+    }
+}
+class AttendanceApiClient {
+    private static final String BASE_URL = "http://192.168.1.16:5078/api/Attendance";
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private OkHttpClient client;
+
+    public AttendanceApiClient() {
+        client = new OkHttpClient();
+    }
+
+    public void addAttendance(int classId, int studentId, String newAttendanceStatus) {
+        try {
+            // Create JSON payload
+            String json = "{\"classId2\": " + classId + ", \"studentId2\": " + studentId + ", \"newAttendanceStatus\": \"" + newAttendanceStatus + "\"}";
+
+            // Build the request body
+            RequestBody requestBody = RequestBody.create(JSON, json);
+
+            // Build the HTTP request
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/AlterAttendance")
+                    .post(requestBody)
+                    .build();
+
+            // Send the request and get the response
+            Response response = client.newCall(request).execute();
+
+            // Process the response
+            if (response.isSuccessful()) {
+                // Attendance added successfully
+                String responseBody = response.body().string();
+                System.out.println("Attendance added: " + responseBody);
+            } else {
+                // Error occurred
+                System.out.println("Error adding attendance: " + response.code() + " - " + response.message());
+            }
+
+            // Close the response
+            response.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
