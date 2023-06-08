@@ -14,4 +14,6 @@
     <string name="first_name_input">First Name</string>
     <string name="femal_input_rg">Female</string>
     <string name="male_input_rg">Male</string>
+    <string name="edit_student_details"></string>
+    <string name="student_detail_change_description">student detail edit button</string>
 </resources>

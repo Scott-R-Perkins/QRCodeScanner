@@ -79,7 +79,9 @@
                     android:drawableLeft="@drawable/baseline_edit_24"
                     android:drawablePadding="10dp"
                     android:paddingEnd="0dp"
-                    android:onClick="openChangeDetails"/>
+                    android:onClick="openChangeDetails"
+                    android:contentDescription="@string/student_detail_change_description" />
+
 
 
             </LinearLayout>
@@ -102,8 +104,10 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="80dp"
                 android:layout_marginBottom="32dp"
+                android:textColor="@color/white"
                 android:drawableLeft="@drawable/baseline_qr_code_scanner_24"
                 android:text="@string/button"
+
                 tools:ignore="MissingConstraints" />
 
         </RelativeLayout>
