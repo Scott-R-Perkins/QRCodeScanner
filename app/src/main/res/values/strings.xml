@@ -8,4 +8,10 @@
     <string name="student_name">Student Name</string>
     <string name="institute_name">Institute Name</string>
     <string name="location_fetch_msg">Obtaining location</string>
+    <string name="student_detail_heading">Change Your Details</string>
+    <string name="age_input">Age</string>
+    <string name="last_name_input">Last Name</string>
+    <string name="first_name_input">First Name</string>
+    <string name="femal_input_rg">Female</string>
+    <string name="male_input_rg">Male</string>
 </resources>
