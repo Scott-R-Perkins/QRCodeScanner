@@ -380,8 +380,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+    //starting the change details activity
     public void openChangeDetails(View view) {
         Intent intent = new Intent(this, StudentDetailActivity.class);
+        startActivity(intent);
+    }
+
+    public void openStudentLogs(View view) {
+        Intent intent = new Intent(this, StudentLogsActivity.class);
         startActivity(intent);
     }
 }

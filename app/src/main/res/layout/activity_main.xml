@@ -103,10 +103,27 @@
                 android:layout_below="@+id/instituteName"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="80dp"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="5dp"
+                android:textSize="20sp"
                 android:textColor="@color/white"
                 android:drawableLeft="@drawable/baseline_qr_code_scanner_24"
                 android:text="@string/button"
+
+                tools:ignore="MissingConstraints" />
+
+            <Button
+                android:id="@+id/button_student_logs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/button_Scan"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="32dp"
+                android:textSize="10sp"
+                android:textColor="@color/white"
+                android:drawableLeft="@drawable/baseline_playlist_add_check_24"
+                android:onClick="openStudentLogs"
+                android:text="@string/attendance"
 
                 tools:ignore="MissingConstraints" />
 
