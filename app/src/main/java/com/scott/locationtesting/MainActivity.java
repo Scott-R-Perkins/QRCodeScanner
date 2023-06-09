@@ -11,6 +11,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -25,23 +27,14 @@ import androidx.core.content.ContextCompat;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /*Make sure to go to the build.gradle(Module:app) file and check for version updates for dependencies, then also sync the gradle file.
 Should move some more of the functionality into their own methods
@@ -69,6 +62,10 @@ TODO: Use the figma wireframe to design the other intents, get navigation workin
 // TODO: 6/06/2023 Find out why the scanner stopped working for QR's. Fuck
 // Think this was just because I was scanning a code that wasnt 4 fields separated by commas
 // Broken again? tf
+// Think its just a case of the QR code not meeting the specifications for the length in the if
+
+// TODO: 9/06/2023 Hope that the http request works, if so its time to massive crunch the rest of the
+//  shit, should be easy from there.
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
@@ -78,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private LocationManager locationManager;
     private Location currentLocation = null;
     private boolean isLocationUpdatesEnabled = false;
-
 
     private Button scanButton;
 
@@ -197,48 +193,48 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     //      it already is paused by default
 
 
-                    //Hard coded class locations for testing
-                    //To get them from the QR code use Double.parseDouble(QRContents[i]) with i replaced by index of where
-                    //value should be.
-                    //This assumes we dont do a different approach for the class locations.
-                    //Potentially could have the app query the DB for a list of classes+their locations onCreate
-                    //Then the QR can just have the class code (IT721) and the mobile app can lookup the local DB
-                    //to find the location data for that class.
-                    //Maybe have it so it scans the QR, sees the class code, checks locally if it has it, if
-                    //not then query the backend for the location info
-                    //double swLat = -46.414031, swLong = 168.355548;  // I Block
-                    //double neLat = -46.413855, neLong = 168.355941;  // I Block
-                    double swLat = -46.412837840239035, swLong = 168.35268081980837;  // J Block
-                    double neLat = -46.41239956185158, neLong = 168.35320653275616;  // J Block
+                    /*
+                    Hard coded class locations for testing
+                    To get them from the QR code use Double.parseDouble(QRContents[i]) with i replaced by index of where
+                    value should be.
+                    This assumes we don't do a different approach for the class locations.
+                    Potentially could have the app query the DB for a list of classes+their locations onCreate
+                    Then the QR can just have the class code (IT721) and the mobile app can lookup the local DB
+                    to find the location data for that class.
+                    Maybe have it so it scans the QR, sees the class code, checks locally if it has it, if
+                    not then query the backend for the location info, then checks it against the user loc
+                     */
+
+                    double swLat = -46.414031, swLong = 168.355548;  // I Block
+                    double neLat = -46.413855, neLong = 168.355941;  // I Block
+                    //double swLat = -46.412837840239035, swLong = 168.35268081980837;  // J Block
+                    //double neLat = -46.41239956185158, neLong = 168.35320653275616;  // J Block
                     double bufferInMeters = 20;
                     //Creating the GeoBox
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
                     //This gets the users location and sets to variables outside the boolean declaration
                     //Should be working, just not in the J Block/Library because of a lack of asbestos
-                    //double userLat = currentLocation.getLatitude(),
-                    //     userLong = currentLocation.getLongitude();  // userLocation infomation
+                    double userLat = currentLocation.getLatitude(),
+                         userLong = currentLocation.getLongitude();  // userLocation infomation
 
                     //This one uses non-hardcoded variables that are set outside the boolean declaration
                     //boolean isUserInGeoBox = geoBox.contains(userLat, userLong);
 
                     //Could also just do this, variables inside the boolean declaration
-                    //boolean isUserInGeoBox = geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude());
+                    boolean isUserInGeoBox = geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude());
 
                     //Hardcoded
-                    boolean isUserInGeoBox = geoBox.contains(-46.41258844303534, 168.35331290516348);
+                    //boolean isUserInGeoBox = geoBox.contains(-46.41258844303534, 168.35331290516348);
 
                     //If true that the user is in the GeoBox
                     if (isUserInGeoBox) {
                         //Sends info to sendToWebApi to handle the postrequest
                         int classId = 0; //This may not need to be passed/expected in the method, once I figure
                         //out saving information to the local db
-                        AttendanceApiClient attendanceApiClient = new AttendanceApiClient();
-                        attendanceApiClient.addAttendance(2, 4, "Present");
 
-
-                        //sendIdToWebApp(classId);
-                        //postToWebApi.mainTwo();
+                        classId = 2;
+                        sendIdToWebApp(classId);
 
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
                         notAtClassBox.setTitle("Cor' Blimey mate");
@@ -282,88 +278,76 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 
     //Currently sends a hardcoded class session and student ID to the httpostreq, which is currently set to httpbin
-    //Final version should: Take in classSession string parsed from the QR code, read the studentID from either SharedPreferences or local DB, send these as an httppostreq to our webapp
+    //Final version should: Take in classSession string parsed from the QR code, read the studentID from either SharedPreferences or local DB,
+    // send these as an httppostreq to our webapp
+
+
     private void sendIdToWebApp(int classId) {
-        StringBuilder response = new StringBuilder();
-        try {
-            AlertDialog.Builder rb = new AlertDialog.Builder(MainActivity.this);
-            rb.setTitle("Got to this point");
-            rb.setMessage("meme");
-            rb.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialogInterface.dismiss();
-                }
-            }).show();
-            URL url = new URL("https://192.168.119.52:5078/api/Attendance?classId2=2&studentId2=4&newAttendanceStatus='Late'");
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
 
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-
-            //This likely will be pulled from the SQLite DB instead of passed into the method.
-            classId = 2;
-            String studentId = "4";
-            String status = "Present";
-            String postData = "classId2=" + URLEncoder.encode(Integer.toString(classId), "UTF-8")
-                    + "studentId2=" + URLEncoder.encode(studentId, "UTF-8")
-                    + "newAttendanceStatus=" + URLEncoder.encode(status, "UTF-8");
-            //byte[] postDataBytes = postData.getBytes("UTF-8");
-
-
-            OutputStream outputStream = conn.getOutputStream();
-            //outputStream.write(postDataBytes);
-            outputStream.write(null);
-            outputStream.flush();
-            outputStream.close();
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                    AlertDialog.Builder rB = new AlertDialog.Builder(MainActivity.this);
-                    rB.setTitle("Response from backend");
-                    rB.setMessage(response.toString());
-                    rB.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.dismiss();
-                        }
-                    }).show();
-                }
-                reader.close();
-            } else {
-
-                AlertDialog.Builder responseBuilder = new AlertDialog.Builder(MainActivity.this);
-                responseBuilder.setTitle("Response from backend");
-                responseBuilder.setMessage(response.toString());
-                responseBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                }).show();
-            }
-            conn.disconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Meme");
-        builder.setMessage("Info sent: " + "2013004474 " + classId);
-        builder.setPositiveButton("Meme", new DialogInterface.OnClickListener() {
+        executorService.execute(new Runnable() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
+            public void run() {
+                StringBuilder response = new StringBuilder();
+                HttpURLConnection conn = null;
+                try {
+                    //URL url = new URL("http://192.168.246.52:5078/api/Attendance");
+                    String studentId = "4";
+                    String status = "Present";
+                    URL url = new URL("http://192.168.246.52:5078/api/Attendance?classId2=" + classId + "&studentId2=4&newAttendanceStatus=Present");
+
+                    conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    //conn.setDoOutput(true);
+                    conn.setRequestProperty("Content-Type", "application/json");
+
+                    OutputStream outputStream = conn.getOutputStream();
+                    outputStream.flush();
+                    outputStream.close();
+
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            response.append(line);
+                        }
+                        reader.close();
+                    }
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            if (responseCode == HttpURLConnection.HTTP_OK) {
+                                builder.setTitle("Success");
+                                builder.setMessage("Response from server: " + response.toString());
+                            } else {
+                                builder.setTitle("Failure");
+                                builder.setMessage("Failed to connect to server. Response Code: " + responseCode);
+                            }
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                }
+                            }).show();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (conn != null) {
+                        conn.disconnect();
+                    }
+                }
             }
-        }).show();
-
-
+        });
     }
+
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -392,76 +376,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 }
 
-class postToWebApi{
-    public static final MediaType JSON
-            = MediaType.get("application/json; charset=utf-8");
 
-    OkHttpClient client = new OkHttpClient();
 
-    String post(String url, String json) throws IOException {
-        RequestBody body = RequestBody.create(json, JSON);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            return response.body().string();
-        }
-    }
-    String bowlingJson(String player1, String player2, String player3) {
-        return "{'classId2':'" + player1 + "',"
-                + "'studentId2':'" + player2 + "',"
-                + "'newAttendanceStatus':'" + player3 + "}";
-    }
 
-    public static void mainTwo() throws IOException {
-        postToWebApi example = new postToWebApi();
-        String json = example.bowlingJson("4", "2", "Present");
-        String response = example.post("https://192.168.119.52:5078/api/Attendance", json);
-        System.out.println(response);
-    }
-}
-class AttendanceApiClient {
-    private static final String BASE_URL = "http://192.168.1.16:5078/api/Attendance";
-    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private OkHttpClient client;
+/*
+Intructions for getting it to work.
+Mobile hotspot on mobile data NOT WIFI
+Connect laptop to mobile hotspot, whitelist the laptop on Azure, needs to be done on edge/chrome not ff
+Change the BASE_URL here to the ipv4 from ipconfig (this will eventually be a static IP from the azure webservice)
+Launch the backend (dotnet run) in the webapi dir
+Launch the frontend (npm start) in the reactapp dir
+Disable Mcafee firewall temporarily
+Launch the mobile app from Android Studio while connected and try to scan
 
-    public AttendanceApiClient() {
-        client = new OkHttpClient();
-    }
+118.148.81.193 ip on azure
+192.168.246.52 ip from ipconfig
 
-    public void addAttendance(int classId, int studentId, String newAttendanceStatus) {
-        try {
-            // Create JSON payload
-            String json = "{\"classId2\": " + classId + ", \"studentId2\": " + studentId + ", \"newAttendanceStatus\": \"" + newAttendanceStatus + "\"}";
-
-            // Build the request body
-            RequestBody requestBody = RequestBody.create(JSON, json);
-
-            // Build the HTTP request
-            Request request = new Request.Builder()
-                    .url(BASE_URL + "/AlterAttendance")
-                    .post(requestBody)
-                    .build();
-
-            // Send the request and get the response
-            Response response = client.newCall(request).execute();
-
-            // Process the response
-            if (response.isSuccessful()) {
-                // Attendance added successfully
-                String responseBody = response.body().string();
-                System.out.println("Attendance added: " + responseBody);
-            } else {
-                // Error occurred
-                System.out.println("Error adding attendance: " + response.code() + " - " + response.message());
-            }
-
-            // Close the response
-            response.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-
+*/
