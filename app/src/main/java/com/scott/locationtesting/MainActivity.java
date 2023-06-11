@@ -67,6 +67,12 @@ TODO: Use the figma wireframe to design the other intents, get navigation workin
 // TODO: 9/06/2023 Hope that the http request works, if so its time to massive crunch the rest of the
 //  shit, should be easy from there.
 
+// TODO: 12/06/2023 Add local DB after finishing lab 12. Move everything to a new activity for "Home Page", add login page.
+//  Ask JoshGpt4 about adding user token bearer shit with jwt, save the jwt token in the local db.
+
+// TODO: 12/06/2023 Fix UI elements to display information to the user. Use Snackbars, change toast to snackbars.
+
+
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
@@ -103,16 +109,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         {
             if (scanButton.isEnabled()) {
                 scanCode();
-            } else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("Warning");
-                builder.setMessage("Please wait until your location has been set to scan.");
-                builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                }).show();
             }
         });
 
@@ -149,6 +145,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onLocationChanged(Location location) {
         currentLocation = location;
         // Handle location updates here
+
+        //Look into saving this to the local database maybe? instead of a global variable.
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         TextView tVLocation = findViewById(R.id.textViewBasic2);
@@ -156,8 +154,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         tVLocation.setTextColor(Color.rgb(0, 200, 0));
         // Look at adding some sort of loader to indicate to users that it is attempting to find the users location
         scanButton.setEnabled(true);
+        // change this to a snackbar
         Toast.makeText(this, "Lat: " + latitude + ", Long: " + longitude, Toast.LENGTH_SHORT).show();
     }
+
 
     public void stopLocationUpdates(View view) {
         locationManager.removeUpdates(this);
@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), result -> {
         if (result != null && result.getContents() != null) {
             //this is where the Code is read and things need to be parsed out + added to the localDB
-            //Need to figure out how we plan to
+            //Need to figure out how we plan to structure the QR code.
             String[] QRContents = result.getContents().split(",");
             if (QRContents.length >= 1) {
                 try {
@@ -193,53 +193,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     //      it already is paused by default
 
 
-                    /*
-                    Hard coded class locations for testing
-                    To get them from the QR code use Double.parseDouble(QRContents[i]) with i replaced by index of where
-                    value should be.
-                    This assumes we don't do a different approach for the class locations.
-                    Potentially could have the app query the DB for a list of classes+their locations onCreate
-                    Then the QR can just have the class code (IT721) and the mobile app can lookup the local DB
-                    to find the location data for that class.
-                    Maybe have it so it scans the QR, sees the class code, checks locally if it has it, if
-                    not then query the backend for the location info, then checks it against the user loc
-                     */
 
-                    double swLat = -46.414031, swLong = 168.355548;  // I Block
-                    double neLat = -46.413855, neLong = 168.355941;  // I Block
-                    //double swLat = -46.412837840239035, swLong = 168.35268081980837;  // J Block
-                    //double neLat = -46.41239956185158, neLong = 168.35320653275616;  // J Block
+                    // Sets class location data based on the information in the QR code.
+                    double neLat = Double.parseDouble(QRContents[1]), neLong = Double.parseDouble(QRContents[2]),
+                            swLat = Double.parseDouble(QRContents[3]), swLong = Double.parseDouble(QRContents[4]);
+
                     double bufferInMeters = 20;
                     //Creating the GeoBox
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
-                    //This gets the users location and sets to variables outside the boolean declaration
-                    //Should be working, just not in the J Block/Library because of a lack of asbestos
-                    double userLat = currentLocation.getLatitude(),
-                         userLong = currentLocation.getLongitude();  // userLocation infomation
 
-                    //This one uses non-hardcoded variables that are set outside the boolean declaration
-                    //boolean isUserInGeoBox = geoBox.contains(userLat, userLong);
-
-                    //Could also just do this, variables inside the boolean declaration
-                    boolean isUserInGeoBox = geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude());
-
-                    //Hardcoded
-                    //boolean isUserInGeoBox = geoBox.contains(-46.41258844303534, 168.35331290516348);
+                    // Checks that the user is within the GeoBox for the classroom
+                    //boolean isUserInGeoBox = geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude());
 
                     //If true that the user is in the GeoBox
-                    if (isUserInGeoBox) {
+                    //if (isUserInGeoBox) {
+                    //Could maybe make the code smaller by changing this to
+                    if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
                         //Sends info to sendToWebApi to handle the postrequest
-                        int classId = 0; //This may not need to be passed/expected in the method, once I figure
-                        //out saving information to the local db
-
-                        classId = 2;
+                        int classId = Integer.parseInt(QRContents[1]);
                         sendIdToWebApp(classId);
 
+                        // Maybe look at doing a confirmation box here (above the isUserInGeoBox (would make sure the class is correct before
+                        // sending attendance.
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
                         notAtClassBox.setTitle("Cor' Blimey mate");
-                        notAtClassBox.setMessage("You were within the bound");
-                        notAtClassBox.setMessage("Your information has been sent to the server");
+                        notAtClassBox.setMessage("Your attendance for this class has been sent");
                         notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
@@ -249,8 +228,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     } else {
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(MainActivity.this);
                         notAtClassBox.setTitle("Cor' Blimey mate");
-                        notAtClassBox.setMessage("Get to class you sneaky little shit, However, if you " +
-                                "are there try clicking the 'Re-obtain location' button and try again");
+                        notAtClassBox.setMessage("Get to class you sneaky little shit.");
                         notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
@@ -295,7 +273,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     //URL url = new URL("http://192.168.246.52:5078/api/Attendance");
                     String studentId = "4";
                     String status = "Present";
-                    URL url = new URL("http://192.168.246.52:5078/api/Attendance?classId2=" + classId + "&studentId2=4&newAttendanceStatus=Present");
+
+                    //URL url = new URL("http://192.168.246.52:5078/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status);
+                    URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
+
 
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
@@ -358,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startLocationUpdates();
             } else {
                 // Permission denied, show an appropriate message
-                //May need to remove the toast, as it doesnt align with material design principals
+                // May need to remove the toast, as it doesn't align with material design principals
                 Toast.makeText(this, "Location permission is required for this feature.", Toast.LENGTH_SHORT).show();
             }
         }
@@ -389,6 +370,7 @@ Launch the frontend (npm start) in the reactapp dir
 Disable Mcafee firewall temporarily
 Launch the mobile app from Android Studio while connected and try to scan
 
+These might need done again
 118.148.81.193 ip on azure
 192.168.246.52 ip from ipconfig
 
