@@ -42,4 +42,12 @@
         android:text="Login test"
         android:onClick="handleLogin"/>
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+
 </LinearLayout>

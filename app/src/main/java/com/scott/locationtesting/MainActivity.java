@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,6 +39,11 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     public static boolean canlogIn = false;
+    String token = null;
+    String errorMessage = null;
+    int userId = 0;
+    String userName = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void handleLogin(View view) {
+        ProgressBar progressBar = findViewById(R.id.progress_bar);
+        progressBar.setVisibility(View.VISIBLE);
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
@@ -56,11 +64,8 @@ public class MainActivity extends AppCompatActivity {
                 HttpURLConnection conn = null;
                 try {
                     EditText editTextEmail = findViewById(R.id.editEmail);
-                    //Read these from edit texts
-                    //String user = "Ken@gmail.com";
                     String user = editTextEmail.getText().toString();
                     EditText editTextPassword = findViewById(R.id.editPassword);
-                    //String pass = "bigchung";
                     String pass = editTextPassword.getText().toString();
                     URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Login?email=" + user +"&pass=" + pass);
 
@@ -86,36 +91,62 @@ public class MainActivity extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                             try {
                                 JSONObject jsonObject = new JSONObject(String.valueOf(response));
                                 if (!jsonObject.isNull("token")) {
-                                    String token = jsonObject.getString("token");
-                                    //Need to figure out how to get the userInfo stuff out so I can save it in the DB
-                                    //Save data to database here, can use json
-                                    //Put a loader here
-                                    Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                                    startActivity(intent);
+                                    token = jsonObject.getString("token");
+                                    //Put a loader here until checks and db saving is done
+                                if(!jsonObject.isNull("userInfo")){
+                                    JSONObject userDTO = jsonObject.getJSONObject("userInfo");
+                                    if(!userDTO.isNull("userId") && !userDTO.isNull("userName")) {
+                                        userId = userDTO.getInt("userId");
+                                        userName = userDTO.getString("userName");
 
-                                } else if (!jsonObject.isNull("errorMessage")) {
-                                    String errorMessage = jsonObject.getString("errorMessage");
+                                        //Save to database here, Token, userId and userName
+
+                                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                                        startActivity(intent);
+                                    }
+                                }
+                                    progressBar.setVisibility(View.GONE);
+                                }
+                                else if (token == null && !jsonObject.isNull("errorMessage")) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                    errorMessage = jsonObject.getString("errorMessage");
                                     builder.setTitle("Failed login");
                                     builder.setMessage("Incorrect username or password, please try again.");
-
+                                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            dialogInterface.dismiss();
+                                        }
+                                    }).show();
+                                    progressBar.setVisibility(View.GONE);
                                 }
                             } catch (JSONException e) {
-                                // handle the exception
-                            }builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.dismiss();
-                                }
-                            }).show();
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                builder.setTitle("Error");
+                                builder.setMessage("An unexpected error occurred, please try again");
+                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                }).show();
+                                progressBar.setVisibility(View.GONE);
+                            }
 
                         }
                     });
+
                 } catch (Exception e) {
                     e.printStackTrace();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    });
                 } finally {
                     if (conn != null) {
                         conn.disconnect();
@@ -123,7 +154,5 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
     }
 }
