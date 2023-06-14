@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -71,6 +72,15 @@ TODO: Use the figma wireframe to design the other intents, get navigation workin
 //  Ask JoshGpt4 about adding user token bearer shit with jwt, save the jwt token in the local db.
 
 // TODO: 12/06/2023 Fix UI elements to display information to the user. Use Snackbars, change toast to snackbars.
+
+// TODO: 13/06/2023 Look at adding a confirmation box to scanning a code, "Log attendance for x class?" etc
+
+// TODO: 13/06/2023 Look into adding that confirmation, then closing out of the scanner so it looks like something is happening +
+//  lets the user know something is happening, like a snackbar to say its sending information to the server. Display some sort of
+//  loading effect/spinner.
+
+// TODO: 13/06/2023 Some sort of loader that displays a message similar to "Your attendance is being sent to the server"
+
 
 
 
@@ -211,8 +221,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     //Could maybe make the code smaller by changing this to
                     if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
                         //Sends info to sendToWebApi to handle the postrequest
-                        int classId = Integer.parseInt(QRContents[1]);
-                        sendIdToWebApp(classId);
+                        sendIdToWebApp(Integer.parseInt(QRContents[1]));
 
                         // Maybe look at doing a confirmation box here (above the isUserInGeoBox (would make sure the class is correct before
                         // sending attendance.
@@ -255,9 +264,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 
 
-    //Currently sends a hardcoded class session and student ID to the httpostreq, which is currently set to httpbin
-    //Final version should: Take in classSession string parsed from the QR code, read the studentID from either SharedPreferences or local DB,
-    // send these as an httppostreq to our webapp
+   //takes in classId from the QR code, then sends it + the studentId and "present" to the database to log attendance.
 
 
     private void sendIdToWebApp(int classId) {
@@ -270,17 +277,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 StringBuilder response = new StringBuilder();
                 HttpURLConnection conn = null;
                 try {
-                    //URL url = new URL("http://192.168.246.52:5078/api/Attendance");
                     String studentId = "4";
+                    //String studentId = retrieve from db
                     String status = "Present";
-
-                    //URL url = new URL("http://192.168.246.52:5078/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status);
                     URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
 
 
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
-                    //conn.setDoOutput(true);
                     conn.setRequestProperty("Content-Type", "application/json");
 
                     OutputStream outputStream = conn.getOutputStream();
@@ -357,21 +361,3 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 }
 
-
-
-
-/*
-Intructions for getting it to work.
-Mobile hotspot on mobile data NOT WIFI
-Connect laptop to mobile hotspot, whitelist the laptop on Azure, needs to be done on edge/chrome not ff
-Change the BASE_URL here to the ipv4 from ipconfig (this will eventually be a static IP from the azure webservice)
-Launch the backend (dotnet run) in the webapi dir
-Launch the frontend (npm start) in the reactapp dir
-Disable Mcafee firewall temporarily
-Launch the mobile app from Android Studio while connected and try to scan
-
-These might need done again
-118.148.81.193 ip on azure
-192.168.246.52 ip from ipconfig
-
-*/
