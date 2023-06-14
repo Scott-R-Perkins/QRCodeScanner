@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,6 +33,8 @@ import java.util.concurrent.Executors;
 // TODO: 14/06/2023 From the login, save the token, name and user id in the database.
 //  Then on home page can pull those out to display and for sending attendance.
 
+// TODO: 14/06/2023 Figure out if its possible to auto-login the user if they still have an active token
+
 public class MainActivity extends AppCompatActivity {
 
     public static boolean canlogIn = false;
@@ -52,9 +55,13 @@ public class MainActivity extends AppCompatActivity {
                 StringBuilder response = new StringBuilder();
                 HttpURLConnection conn = null;
                 try {
-                    //Read these from text boxes on the page
-                    String user = "Ken@gmail.com";
-                    String pass = "bigchung";
+                    EditText editTextEmail = findViewById(R.id.editEmail);
+                    //Read these from edit texts
+                    //String user = "Ken@gmail.com";
+                    String user = editTextEmail.getText().toString();
+                    EditText editTextPassword = findViewById(R.id.editPassword);
+                    //String pass = "bigchung";
+                    String pass = editTextPassword.getText().toString();
                     URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Login?email=" + user +"&pass=" + pass);
 
 

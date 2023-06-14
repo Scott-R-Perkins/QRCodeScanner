@@ -9,6 +9,32 @@
     android:background="@drawable/mobile_bg">
 
 
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/editEmail"
+        android:inputType="textPersonName"
+        android:text=""
+        android:textAlignment="center"
+        android:ems="10"
+        android:contentDescription="Email"
+        android:hint="id@student.sit.ac.nz"
+        android:layout_margin="25dp"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/editPassword"
+        android:inputType="textPassword"
+        android:text=""
+        android:textAlignment="center"
+        android:ems="10"
+        android:contentDescription="Password"
+        android:hint="Password"
+        android:layout_margin="25dp"/>
+
+
     <Button
         android:layout_width="100dp"
         android:layout_height="100dp"
