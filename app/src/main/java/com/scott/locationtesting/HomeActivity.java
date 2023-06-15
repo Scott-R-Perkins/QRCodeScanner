@@ -39,18 +39,10 @@ import java.util.concurrent.Executors;
 /*Make sure to go to the build.gradle(Module:app) file and check for version updates for dependencies, then also sync the gradle file.
 Should move some more of the functionality into their own methods
 Need to move *some* of the stuff here to a different activity, basically just the scan button+functionally
-TODO: Use the figma wireframe to design the other intents, get navigation working, then work on storing student info (ID/Name/Whatever else is needed), then try and make it work with web app, when that gets made.
- */
+*/
 
 
-// TODO: 6/06/2023 Create the rest of the Activities and link them all together (app bar or nah?) Look into
-//    //  recyclerViews for the local attendance log and local db storage for storing things such as the class
-//    //  session/user loc and student ID.
-// Need to figure out a 3rd activity that makes sense (Home page with buttons for scan+log)
 
-
-// TODO: 9/06/2023 Hope that the http request works, if so its time to massive crunch the rest of the
-//  shit, should be easy from there.
 
 // TODO: 12/06/2023 Add local DB after finishing lab 12. Move everything to a new activity for "Home Page", add login page.
 //  Ask JoshGpt4 about adding user token bearer shit with jwt, save the jwt token in the local db.
@@ -66,6 +58,8 @@ TODO: Use the figma wireframe to design the other intents, get navigation workin
 //  loading effect/spinner.
 
 // TODO: 13/06/2023 Some sort of loader that displays a message similar to "Your attendance is being sent to the server"
+
+// TODO: 16/06/2023 Fix all the null/error checks to actually do something
 
 
 
@@ -194,19 +188,15 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                             swLat = Double.parseDouble(QRContents[3]), swLong = Double.parseDouble(QRContents[4]);
 
                     double bufferInMeters = 20;
+                    String wasWithinBounds;
                     //Creating the GeoBox
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
 
-                    // Checks that the user is within the GeoBox for the classroom
-                    //boolean isUserInGeoBox = geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude());
-
-                    //If true that the user is in the GeoBox
-                    //if (isUserInGeoBox) {
-                    //Could maybe make the code smaller by changing this to
                     if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
                         //Sends info to sendToWebApi to handle the postrequest
-                        sendIdToWebApp(Integer.parseInt(QRContents[1]));
+                        wasWithinBounds = "Within bounds";
+                        sendIdToWebApp(Integer.parseInt(QRContents[0]));
 
                         // Maybe look at doing a confirmation box here (above the isUserInGeoBox (would make sure the class is correct before
                         // sending attendance.
@@ -220,6 +210,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                             }
                         }).show();
                     } else {
+                        wasWithinBounds = "Not within bounds";
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
                         notAtClassBox.setTitle("Cor' Blimey mate");
                         notAtClassBox.setMessage("Get to class you sneaky little shit.");
@@ -230,6 +221,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                             }
                         }).show();
                     }
+                    // Log attendance here, set text within the If's for the within bounds column
 
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
@@ -263,7 +255,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                 HttpURLConnection conn = null;
                 try {
                     String studentId = "4";
-                    //String studentId = retrieve from db
+                    //String studentId = retrieve from db, table SCAN_INFO(userId)
                     String status = "Present";
                     URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
 
@@ -271,6 +263,9 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type", "application/json");
+                    //Should be working, just need to grab it from the DB, tablename is SCANINFO
+                    String jwt = "jwtfromdb";
+                    conn.setRequestProperty("Authorization","Bearer " + jwt);
 
                     OutputStream outputStream = conn.getOutputStream();
                     outputStream.flush();

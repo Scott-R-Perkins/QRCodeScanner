@@ -21,8 +21,12 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE USERINFO (_id INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT, INT AGE, GENDER TEXT, CURRENT_TOKEN TEXT)");
-        db.execSQL("CREATE TABLE ATTENDANCELOG(_id INTEGER PRIMARY KEY AUTOINCREMENT, CLASSID TEXT, CLASS_NAME TEXT, STUDENT_ID TEXT, SCAN_TIME DATETIME)");
+        // this table is used to store the userID and Token required for scanning
+        db.execSQL("CREATE TABLE SCANINFO (_id INTEGER PRIMARY KEY AUTOINCREMENT, USER_ID INTEGER, CURRENT_TOKEN TEXT)");
+        // This table is used to store personal information about the student
+        db.execSQL("CREATE TABLE USERINFO (_id INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT, INT AGE, GENDER TEXT)");
+        // This table is used to keep information from every attempted attendance scan and is then later displayed in StudentLogActivity
+        db.execSQL("CREATE TABLE ATTENDANCELOG(_id INTEGER PRIMARY KEY AUTOINCREMENT, CLASSID TEXT, CLASS_NAME TEXT, STUDENT_ID TEXT, SCAN_TIME DATETIME, WITHIN_BOUNDS TEXT)");
     }
 
     @Override
