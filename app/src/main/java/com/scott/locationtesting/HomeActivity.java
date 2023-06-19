@@ -6,6 +6,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -33,6 +37,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -74,7 +79,6 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
     private Button scanButton;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +94,27 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_LOCATION);
         }
+
+        //Testing
+        Executor executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                MyDatabaseHelper dbHelper = new MyDatabaseHelper(HomeActivity.this);
+                final String name = dbHelper.getUserInfo();
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView studentNameTextView = (TextView) findViewById(R.id.studentName);
+                        studentNameTextView.setText(name);
+                    }
+                });
+            }
+        });
+
 
         //Open QR scanner
 
@@ -253,18 +278,34 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
             public void run() {
                 StringBuilder response = new StringBuilder();
                 HttpURLConnection conn = null;
+                String studentId = "";
+                String jwt = "";
                 try {
-                    String studentId = "4";
-                    //String studentId = retrieve from db, table SCAN_INFO(userId)
                     String status = "Present";
-                    URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
+                    //Get studentId and jwt from database
+                    MyDatabaseHelper dbHelper = new MyDatabaseHelper(HomeActivity.this);
+                    try{
+                        String sql = "SELECT * FROM SCANINFO";
+                        SQLiteDatabase db = dbHelper.getReadableDatabase();
+                        Cursor c = db.rawQuery(sql, null);
+                        if (c.moveToFirst()) {
+                            studentId = c.getString(1);
+                            jwt = c.getString(2);
+                        }
 
+
+                    } catch (SQLiteException ex){
+                        //Change this to snackbar
+                        Toast.makeText(HomeActivity.this, "SQL Error", Toast.LENGTH_SHORT).show();
+                    }
+
+                    studentId = "7";
+                    URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
 
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type", "application/json");
-                    //Should be working, just need to grab it from the DB, tablename is SCANINFO
-                    String jwt = "jwtfromdb";
+
                     conn.setRequestProperty("Authorization","Bearer " + jwt);
 
                     OutputStream outputStream = conn.getOutputStream();

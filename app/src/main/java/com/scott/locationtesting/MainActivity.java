@@ -103,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
                                         userName = userDTO.getString("userName");
 
                                         //Save to database here, Token, userId and userName
+                                        MyDatabaseHelper dbHelper = new MyDatabaseHelper(MainActivity.this);
+                                        dbHelper.insertOrUpdateScanInfo(userId, token);
+                                        //dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
 
                                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                                         startActivity(intent);
