@@ -2,10 +2,13 @@ package com.scott.locationtesting;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.view.View;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -15,11 +18,12 @@ import java.util.concurrent.Executors;
 
 // TODO: 20/06/2023 Grab current user information from the db and populate the info boxes here
 
-// TODO: 20/06/2023 Submit button chnages the user information in the db then sends them back to the home menu
+// TODO: 20/06/2023 Submit button changes the user information in the db then sends them back to the home menu
 public class StudentDetailActivity extends AppCompatActivity {
 
     MyDatabaseHelper dbHelper;
     Cursor c;
+
     EditText eTName;
     EditText eTAge;
     EditText eTGender;
@@ -31,42 +35,55 @@ public class StudentDetailActivity extends AppCompatActivity {
 
 
         Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            MyDatabaseHelper dbHelper = new MyDatabaseHelper(StudentDetailActivity.this);
-            final String userInfo = dbHelper.getUserInfo();
-            String[] userInfoSplit = userInfo.split(",");
-            if (userInfoSplit.length >= 1) {
-                try {
+        Handler handler = new Handler(Looper.getMainLooper());
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                MyDatabaseHelper dbHelper = new MyDatabaseHelper(StudentDetailActivity.this);
+                final String userInfo = dbHelper.getUserInfo();
+                String[] userInfoSplit = userInfo.split(",");
+                if (userInfoSplit.length >= 1) {
                     String name = userInfoSplit[0];
-                    int age = Integer.parseInt(userInfoSplit[1]);
+                    String age = userInfoSplit[1];
                     String gender = userInfoSplit[2];
-
-                    eTName = findViewById(R.id.studentfname_input);
-                    eTName.setText(name);
-                    eTAge = findViewById(R.id.student_age_input);
-                    eTAge.setText(age);
-                    //Look at changing the gender to a dropdown or something, that way can set the default text and use a string array for the options?
-                }
-                catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            eTName = findViewById(R.id.studentfname_input);
+                            eTName.setHint(name);
+                            eTAge = findViewById(R.id.student_age_input);
+                            eTAge.setHint(age);
+                            //Look at changing the gender to a dropdown or something, that way can set the default text and use a string array for the options?
+                            //Spinner
+                            //Might not be worth the effort
+                        }
+                    });
                 }
             }
         });
     }
 
-    public void handleSubmit(View view){
+    public void handleSubmit() {
         Executor executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 MyDatabaseHelper dbHelper = new MyDatabaseHelper(StudentDetailActivity.this);
-                try{
-                    dbHelper.insertOrUpdateUserInfo(eTName.getText().toString(), Integer.parseInt(eTAge.getText().toString()), eTGender.getText().toString());
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            dbHelper.insertOrUpdateUserInfo(eTName.getText().toString(), Integer.parseInt(eTAge.getText().toString()), eTGender.getText().toString());
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
+        Intent intent = new Intent(StudentDetailActivity.this, HomeActivity.class);
+        startActivity(intent);
     }
 
     @Override

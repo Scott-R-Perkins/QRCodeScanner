@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                                         //Save to database here, Token, userId and userName
                                         dbHelper = new MyDatabaseHelper(MainActivity.this);
                                         dbHelper.insertOrUpdateScanInfo(studentId, token);
-                                        //dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
+                                        dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
 
                                        /* if(studentId != 0){
                                             dbHelper.insertOrUpdateScanInfo(studentId, token);
