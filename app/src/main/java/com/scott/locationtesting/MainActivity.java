@@ -34,11 +34,19 @@ public class MainActivity extends AppCompatActivity {
     int studentId = 0;
     String userName = null;
 
+    public MyDatabaseHelper dbHelper;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbHelper.close();
     }
 
     public void handleLogin(View view) {
@@ -96,27 +104,17 @@ public class MainActivity extends AppCompatActivity {
                                         studentId = userDTO.getInt("studentId");
                                         //Could be casuing an error when loggin in as ken bc he doesn;t have a studentid? idk
 
-                                        //Testing shit, delete later
-                                        /*AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                                        builder.setTitle("fk");
-                                        builder.setMessage(userId + " " + userName + " " + studentId );
-                                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                dialogInterface.dismiss();
-                                            }
-                                        }).show();*/
 
                                         //Save to database here, Token, userId and userName
-                                        MyDatabaseHelper dbHelper = new MyDatabaseHelper(MainActivity.this);
-                                        //dbHelper.insertOrUpdateScanInfo(studentId, token);
-                                        dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
+                                        dbHelper = new MyDatabaseHelper(MainActivity.this);
+                                        dbHelper.insertOrUpdateScanInfo(studentId, token);
+                                        //dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
 
-                                        if(studentId != 0){
+                                       /* if(studentId != 0){
                                             dbHelper.insertOrUpdateScanInfo(studentId, token);
                                         } else {
                                             dbHelper.insertOrUpdateScanInfo(userId, token);
-                                        }
+                                        }*/
 
 
                                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);

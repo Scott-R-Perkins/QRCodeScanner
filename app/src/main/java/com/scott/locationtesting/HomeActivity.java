@@ -75,6 +75,10 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
 
     public static final String studentId = "";
 
+    public MyDatabaseHelper dbHelper;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +128,12 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
         });
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbHelper.close();
     }
 
     // Start location updates when the run
@@ -282,7 +292,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                 String jwt = "";
                 try {
                     String status = "Present";
-                    MyDatabaseHelper dbHelper = new MyDatabaseHelper(HomeActivity.this);
+                    dbHelper = new MyDatabaseHelper(HomeActivity.this);
                     try{
                         String sql = "SELECT * FROM SCANINFO";
                         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -299,7 +309,6 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                         Toast.makeText(HomeActivity.this, "SQL Error", Toast.LENGTH_SHORT).show();
                     }
 
-                    //studentId = "7";
                     URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
 
                     conn = (HttpURLConnection) url.openConnection();

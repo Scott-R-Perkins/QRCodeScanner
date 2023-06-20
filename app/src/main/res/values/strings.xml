@@ -18,4 +18,7 @@
     <string name="student_log_activity">Opens student Attendance activity</string>
     <string name="attendance_logs_heading">Attendance Logs</string>
     <string name="attendance">Attendance</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="email_address">Email address</string>
 </resources>

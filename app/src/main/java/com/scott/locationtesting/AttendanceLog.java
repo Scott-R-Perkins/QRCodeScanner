@@ -10,6 +10,7 @@ public class AttendanceLog {
     private Date timeLogged;
     private String withinBounds;
 
+
     public AttendanceLog(String classId, String className, Date timeLogged, String withinBounds){
         this.classId = classId;
         this.className = className;
