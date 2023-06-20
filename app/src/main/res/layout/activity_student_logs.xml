@@ -28,7 +28,13 @@
         app:cardElevation="5dp"
         app:cardUseCompatPadding="true">
 
-    <ListView
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            android:id="@+id/my_recyclerView"/>
+
+    <!--<ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/student_logs_list"
@@ -39,7 +45,7 @@
         android:divider="@null"
         android:dividerHeight="0dp"
         android:padding="10dp"
-        />
+        /> -->
 
     </androidx.cardview.widget.CardView>
 

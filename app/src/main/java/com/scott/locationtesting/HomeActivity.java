@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,12 +48,6 @@ Need to move *some* of the stuff here to a different activity, basically just th
 */
 
 
-
-
-// TODO: 12/06/2023 Add local DB after finishing lab 12. Move everything to a new activity for "Home Page", add login page.
-//  Ask JoshGpt4 about adding user token bearer shit with jwt, save the jwt token in the local db.
-
-// TODO: 14/06/2023 add the token in with the httprequest when sending in a attendance log
 
 // TODO: 12/06/2023 Fix UI elements to display information to the user. Use Snackbars, change toast to snackbars.
 
@@ -77,6 +72,8 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
     private Location currentLocation = null;
     private boolean isLocationUpdatesEnabled = false;
     private Button scanButton;
+
+    public static final String studentId = "";
 
 
     @Override
@@ -219,15 +216,18 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
 
 
                     if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
+                    //if true just used for easy testing
+                    //if(true){
                         //Sends info to sendToWebApi to handle the postrequest
                         wasWithinBounds = "Within bounds";
-                        sendIdToWebApp(Integer.parseInt(QRContents[0]));
+                        sendIdToWebApp(Integer.parseInt(QRContents[0]), QRContents[5]);
 
                         // Maybe look at doing a confirmation box here (above the isUserInGeoBox (would make sure the class is correct before
                         // sending attendance.
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
                         notAtClassBox.setTitle("Cor' Blimey mate");
                         notAtClassBox.setMessage("Your attendance for this class has been sent");
+                        notAtClassBox.setMessage("Your attendance for " + QRContents[5] +" has been sent");
                         notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
@@ -269,7 +269,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
     //takes in classId from the QR code, then sends it + the studentId and "present" to the database to log attendance.
 
 
-    private void sendIdToWebApp(int classId) {
+    private void sendIdToWebApp(int classId, String className) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
@@ -282,7 +282,6 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                 String jwt = "";
                 try {
                     String status = "Present";
-                    //Get studentId and jwt from database
                     MyDatabaseHelper dbHelper = new MyDatabaseHelper(HomeActivity.this);
                     try{
                         String sql = "SELECT * FROM SCANINFO";
@@ -292,6 +291,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                             studentId = c.getString(1);
                             jwt = c.getString(2);
                         }
+                        c.close();
 
 
                     } catch (SQLiteException ex){
@@ -299,7 +299,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                         Toast.makeText(HomeActivity.this, "SQL Error", Toast.LENGTH_SHORT).show();
                     }
 
-                    studentId = "7";
+                    //studentId = "7";
                     URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
 
                     conn = (HttpURLConnection) url.openConnection();
@@ -308,9 +308,14 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
 
                     conn.setRequestProperty("Authorization","Bearer " + jwt);
 
+
                     OutputStream outputStream = conn.getOutputStream();
                     outputStream.flush();
                     outputStream.close();
+
+                    Date currentDate = new Date();
+                    AttendanceLog logItem = new AttendanceLog(Integer.toString(classId), className, currentDate, "True");
+                    dbHelper.insertIntoAttendancelog(logItem);
 
                     int responseCode = conn.getResponseCode();
                     if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -322,6 +327,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                         reader.close();
                     }
 
+                    String finalStudentId = studentId;
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -332,6 +338,15 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                             } else {
                                 builder.setTitle("Failure");
                                 builder.setMessage("Failed to connect to server. Response Code: " + responseCode);
+                                AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
+                                notAtClassBox.setTitle("SquashinBugs");
+                                notAtClassBox.setMessage("Class id:" + classId + "\nStudent Id:" + finalStudentId);
+                                notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                }).show();
                             }
                             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override

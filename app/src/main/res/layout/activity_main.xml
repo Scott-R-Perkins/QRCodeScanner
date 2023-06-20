@@ -10,34 +10,47 @@
 
 
 
-    <EditText
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:id="@+id/editEmail"
-        android:inputType="textPersonName"
-        android:text=""
-        android:textAlignment="center"
-        android:ems="10"
-        android:hint="id@student.sit.ac.nz"
-        android:layout_margin="25dp"/>
+        android:layout_height="wrap_content"
+        android:id="@+id/textInputLayoutEmail"
+        android:layout_marginTop="500px"
+        android:layout_marginHorizontal="100px">
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/editEmail"
+            android:inputType="textEmailAddress"
+            android:hint="Email address"/>
 
-    <EditText
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:id="@+id/editPassword"
-        android:inputType="textPassword"
-        android:text=""
-        android:textAlignment="center"
-        android:ems="10"
-        android:hint="Password"
-        android:layout_margin="25dp"/>
+        android:layout_height="wrap_content"
+        app:passwordToggleEnabled="true">
+
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:layout_marginTop="100px"
+            android:layout_marginHorizontal="100px"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
 
 
     <Button
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="match_parent"
+        android:layout_marginHorizontal="100px"
+        android:layout_marginTop="100px"
+        android:layout_height="50dp"
         android:layout_gravity="center"
-        android:text="Login test"
+        android:text="Login"
         android:onClick="handleLogin"/>
 
     <ProgressBar

@@ -27,6 +27,8 @@
         <activity
             android:name=".StudentDetailActivity"
             android:exported="false" />
+        <activity android:name=".StudentLogsActivity"
+            android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true" >

@@ -6,8 +6,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
@@ -31,7 +34,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE SCANINFO (_id INTEGER PRIMARY KEY AUTOINCREMENT, USER_ID INTEGER, CURRENT_TOKEN TEXT)");
         // This table is used to store personal information about the student
         //Maybe also look into storing the img in here for the profile picture thing?
-        db.execSQL("CREATE TABLE USERINFO (_id INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT, INT AGE, GENDER TEXT)");
+        db.execSQL("CREATE TABLE USERINFO (_id INTEGER PRIMARY KEY AUTOINCREMENT, NAME TEXT, AGE INTEGER, GENDER TEXT)");
         // This table is used to keep information from every attempted attendance scan and is then later displayed in StudentLogActivity
         db.execSQL("CREATE TABLE ATTENDANCELOG(_id INTEGER PRIMARY KEY AUTOINCREMENT, CLASSID TEXT, CLASS_NAME TEXT, STUDENT_ID TEXT, SCAN_TIME TEXT, WITHIN_BOUNDS TEXT)");
     }
@@ -69,15 +72,13 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public long insertIntoAttendancelog(String classId, String className, String studentId, String withinBounds){
+    public long insertIntoAttendancelog(AttendanceLog log){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("CLASSID", classId);
-        values.put("CLASS_NAME", className);
-        values.put("STUDENT_ID", studentId);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        values.put("SCAN_TIME", dateFormat.format(new Date()));
-        values.put("WITHIN_BOUNDS",withinBounds);
+        values.put("CLASSID", log.getClassId());
+        values.put("CLASS_NAME", log.getClassName());;
+        values.put("SCAN_TIME", log.getFormattedTimeLogged());
+        values.put("WITHIN_BOUNDS",log.getWithinBounds());
         return db.insert("ATTENDANCElOG", null, values);
 
     }
@@ -100,5 +101,61 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
         return name;
     }
+
+    public List<AttendanceLog> getAttendanceLogs() {
+        List<AttendanceLog> attendanceLogs = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+
+        String selectQuery = "SELECT * FROM ATTENDANCELOG";
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                AttendanceLog log = new AttendanceLog();
+                int classIdIndex = cursor.getColumnIndex("CLASSID");
+                if (classIdIndex != -1) {
+                    log.setClassId(cursor.getString(classIdIndex));
+                } else {
+                    // Handle error. For example, log an error message or throw an exception
+                }
+
+                int classNameIndex = cursor.getColumnIndex("CLASS_NAME");
+                if (classNameIndex != -1) {
+                    log.setClassName(cursor.getString(classNameIndex));
+                } else {
+                    // Handle error. For example, log an error message or throw an exception
+                }
+
+                int scanTimeIndex = cursor.getColumnIndex("SCAN_TIME");
+                if(scanTimeIndex != -1){
+                    String timeLoggedString = cursor.getString(scanTimeIndex);
+                    try {
+                        Date timeLogged = dateFormat.parse(timeLoggedString);
+                        log.setTimeLogged(timeLogged);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    // Handle error. For example, log an error message or throw an exception
+                }
+
+                int withinBoundsIndex = cursor.getColumnIndex("WITHIN_BOUNDS");
+                if (withinBoundsIndex != -1) {
+                    log.setWithinBounds(cursor.getString(withinBoundsIndex));
+                } else {
+                    // Handle error. For example, log an error message or throw an exception
+                }
+
+                attendanceLogs.add(log);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return attendanceLogs;
+    }
+
+
 
 }

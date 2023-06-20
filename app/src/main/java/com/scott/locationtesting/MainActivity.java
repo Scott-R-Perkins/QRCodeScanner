@@ -23,25 +23,15 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// TODO: 14/06/2023 New login page if you see it before I mention it @Missandu, all the code from the previous
-//  MainActivity is now within HomeActivity, along with the activity_main.xml being moved to activity_home
-
-//Few things to check before committing, mainly that the app still functions.
-
-// TODO: 14/06/2023 Create the login form on this page, with the http post request to the server and token grabbing
-//  + saving to the db
-
-// TODO: 14/06/2023 From the login, save the token, name and user id in the database.
-//  Then on home page can pull those out to display and for sending attendance.
 
 // TODO: 14/06/2023 Figure out if its possible to auto-login the user if they still have an active token
 
 public class MainActivity extends AppCompatActivity {
 
-    public static boolean canlogIn = false;
     String token = null;
     String errorMessage = null;
     int userId = 0;
+    int studentId = 0;
     String userName = null;
 
 
@@ -95,17 +85,39 @@ public class MainActivity extends AppCompatActivity {
                                 JSONObject jsonObject = new JSONObject(String.valueOf(response));
                                 if (!jsonObject.isNull("token")) {
                                     token = jsonObject.getString("token");
+                                    errorMessage = jsonObject.getString("errorMessage");
                                     //Put a loader here until checks and db saving is done
                                 if(!jsonObject.isNull("userInfo")){
                                     JSONObject userDTO = jsonObject.getJSONObject("userInfo");
-                                    if(!userDTO.isNull("userId") && !userDTO.isNull("userName")) {
+                                    //if(!userDTO.isNull("userId") && !userDTO.isNull("userName") && !userDTO.isNull("studentId")) {
+                                    if(!userDTO.isNull("userName")) {
                                         userId = userDTO.getInt("userId");
                                         userName = userDTO.getString("userName");
+                                        studentId = userDTO.getInt("studentId");
+                                        //Could be casuing an error when loggin in as ken bc he doesn;t have a studentid? idk
+
+                                        //Testing shit, delete later
+                                        /*AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                        builder.setTitle("fk");
+                                        builder.setMessage(userId + " " + userName + " " + studentId );
+                                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.dismiss();
+                                            }
+                                        }).show();*/
 
                                         //Save to database here, Token, userId and userName
                                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(MainActivity.this);
-                                        dbHelper.insertOrUpdateScanInfo(userId, token);
-                                        //dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
+                                        //dbHelper.insertOrUpdateScanInfo(studentId, token);
+                                        dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
+
+                                        if(studentId != 0){
+                                            dbHelper.insertOrUpdateScanInfo(studentId, token);
+                                        } else {
+                                            dbHelper.insertOrUpdateScanInfo(userId, token);
+                                        }
+
 
                                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                                         startActivity(intent);

@@ -96,7 +96,7 @@
                     android:id="@+id/radioButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/femal_input_rg" />
+                    android:text="@string/female_input_rg" />
 
                 <RadioButton
                     android:id="@+id/radioButton2"
