@@ -4,12 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -24,7 +20,6 @@ public class StudentDetailActivity extends AppCompatActivity {
 
     MyDatabaseHelper dbHelper;
     Cursor c;
-
     EditText eTName;
     EditText eTAge;
     EditText eTGender;
@@ -36,36 +31,31 @@ public class StudentDetailActivity extends AppCompatActivity {
 
 
         Executor executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                MyDatabaseHelper dbHelper = new MyDatabaseHelper(StudentDetailActivity.this);
-                final String userInfo = dbHelper.getUserInfo();
-                String[] userInfoSplit = userInfo.split(",");
-                if (userInfoSplit.length >= 1) {
-                    try {
-                        String name = userInfoSplit[0];
-                        int age = Integer.parseInt(userInfoSplit[1]);
-                        String gender = userInfoSplit[2];
+        executor.execute(() -> {
+            MyDatabaseHelper dbHelper = new MyDatabaseHelper(StudentDetailActivity.this);
+            final String userInfo = dbHelper.getUserInfo();
+            String[] userInfoSplit = userInfo.split(",");
+            if (userInfoSplit.length >= 1) {
+                try {
+                    String name = userInfoSplit[0];
+                    int age = Integer.parseInt(userInfoSplit[1]);
+                    String gender = userInfoSplit[2];
 
-                        eTName = findViewById(R.id.studentfname_input);
-                        eTAge = findViewById(R.id.student_age_input);
-                        //Look at changing the gender to a dropdown or something, that way can set the default text and use a string array for the options?
-                    }
-                    catch (NumberFormatException e) {
-                        e.printStackTrace();
-                    }
+                    eTName = findViewById(R.id.studentfname_input);
+                    eTName.setText(name);
+                    eTAge = findViewById(R.id.student_age_input);
+                    eTAge.setText(age);
+                    //Look at changing the gender to a dropdown or something, that way can set the default text and use a string array for the options?
+                }
+                catch (NumberFormatException e) {
+                    e.printStackTrace();
                 }
             }
         });
-
-
     }
 
-    public void handleSubmit(){
+    public void handleSubmit(View view){
         Executor executor = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
         executor.execute(new Runnable() {
             @Override
             public void run() {
