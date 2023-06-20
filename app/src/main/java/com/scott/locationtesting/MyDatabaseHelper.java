@@ -87,7 +87,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
     }
-    public String getUserInfo() {
+    public String getUserName() {
         SQLiteDatabase db = this.getReadableDatabase();
 
         String selectQuery = "SELECT  * FROM USERINFO LIMIT 1";
@@ -100,6 +100,38 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
 
         return name;
+    }
+
+    public String getUserInfo(){
+        StringBuilder userInfoString = new StringBuilder();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM USERINFO LIMIT 1";
+        Cursor c = db.rawQuery(selectQuery, null);
+        if(c.moveToFirst()){
+            do{
+                int nameIndex = c.getColumnIndex("NAME");
+                if (nameIndex != -1) {
+                    userInfoString.append(c.getString(nameIndex));
+                } else {
+                    // Handle error. For example, log an error message or throw an exception
+                }
+
+                int ageIndex = c.getColumnIndex("AGE");
+                if (ageIndex != -1) {
+                    userInfoString.append(",").append(c.getString(ageIndex));
+                } else {
+                    // Handle error. For example, log an error message or throw an exception
+                }
+                int genderIndex = c.getColumnIndex("GENDER");
+                if(genderIndex != -1){
+                    userInfoString.append(",").append(c.getString(genderIndex));
+                }
+
+            } while (c.moveToFirst());
+        }
+        c.close();
+
+        return userInfoString.toString();
     }
 
     public List<AttendanceLog> getAttendanceLogs() {

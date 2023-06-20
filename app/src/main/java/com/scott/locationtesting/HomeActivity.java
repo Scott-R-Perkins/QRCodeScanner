@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -104,7 +103,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
             @Override
             public void run() {
                 MyDatabaseHelper dbHelper = new MyDatabaseHelper(HomeActivity.this);
-                final String name = dbHelper.getUserInfo();
+                final String name = dbHelper.getUserName();
 
                 handler.post(new Runnable() {
                     @Override
