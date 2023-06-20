@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
@@ -41,13 +42,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/*Make sure to go to the build.gradle(Module:app) file and check for version updates for dependencies, then also sync the gradle file.
-Should move some more of the functionality into their own methods
-Need to move *some* of the stuff here to a different activity, basically just the scan button+functionally
-*/
-
-
-
 // TODO: 12/06/2023 Fix UI elements to display information to the user. Use Snackbars, change toast to snackbars.
 
 // TODO: 13/06/2023 Look at adding a confirmation box to scanning a code, "Log attendance for x class?" etc
@@ -57,6 +51,7 @@ Need to move *some* of the stuff here to a different activity, basically just th
 //  loading effect/spinner.
 
 // TODO: 13/06/2023 Some sort of loader that displays a message similar to "Your attendance is being sent to the server"
+// TODO: 20/06/2023 This may not be needed as it sends it pretty quick
 
 // TODO: 16/06/2023 Fix all the null/error checks to actually do something
 
@@ -175,6 +170,10 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
         // Look at adding some sort of loader to indicate to users that it is attempting to find the users location
         scanButton.setEnabled(true);
         // change this to a snackbar
+
+        //val contextView = findViewById<View>(R.id.context_view)
+        //String snackbarLocationData = "Location obtained\nLat: " + latitude +"\nLong: " + longitude;
+        //Snackbar.make(contextView, snackbarLocationData, Snackbar.LENGTH_LONG).show()
         Toast.makeText(this, "Lat: " + latitude + ", Long: " + longitude, Toast.LENGTH_SHORT).show();
     }
 
@@ -305,6 +304,8 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
 
                     } catch (SQLiteException ex){
                         //Change this to snackbar
+                        //val contextView = findViewById<View>(R.id.context_view)
+                        //Snackbar.make(contextView, "SQL Error", Snackbar.LENGTH_LONG).show()
                         Toast.makeText(HomeActivity.this, "SQL Error", Toast.LENGTH_SHORT).show();
                     }
 
@@ -388,6 +389,9 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
             } else {
                 // Permission denied, show an appropriate message
                 // May need to remove the toast, as it doesn't align with material design principals
+
+                //val contextView = findViewById<View>(R.id.context_view)
+                //Snackbar.make(contextView, "SQL Error", Snackbar.LENGTH_LONG).show()
                 Toast.makeText(this, "Location permission is required for this feature.", Toast.LENGTH_SHORT).show();
             }
         }
