@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
                     String user = editTextEmail.getText().toString();
                     EditText editTextPassword = findViewById(R.id.editPassword);
                     String pass = editTextPassword.getText().toString();
-                    URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Login?email=" + user +"&pass=" + pass);
+                    URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Login?email=" + user + "&pass=" + pass);
 
 
                     conn = (HttpURLConnection) url.openConnection();
@@ -102,13 +102,13 @@ public class MainActivity extends AppCompatActivity {
                                         userId = userDTO.getInt("userId");
                                         userName = userDTO.getString("userName");
                                         studentId = userDTO.getInt("studentId");
-                                        //Could be casuing an error when loggin in as ken bc he doesn;t have a studentid? idk
+                                        //Could be causing an error when logging in as ken bc he doesn't have a studentId? idk
 
 
                                         //Save to database here, Token, userId and userName
                                         dbHelper = new MyDatabaseHelper(MainActivity.this);
                                         dbHelper.insertOrUpdateScanInfo(studentId, token);
-                                        dbHelper.insertOrUpdateUserInfo(userName, 27, "Male");
+                                        dbHelper.insertOrUpdateUserInfo(userName, 0, "Unspecified");
 
                                        /* if(studentId != 0){
                                             dbHelper.insertOrUpdateScanInfo(studentId, token);
