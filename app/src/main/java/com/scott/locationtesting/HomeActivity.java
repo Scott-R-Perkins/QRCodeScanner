@@ -223,9 +223,9 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
 
-                    //if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
+                    if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
                     //if true just used for easy testing
-                    if(true){
+                    //if(true){
                         //Sends info to sendToWebApi to handle the postrequest
                         wasWithinBounds = "Yes";
                         sendIdToWebApp(Integer.parseInt(QRContents[0]), QRContents[5]);

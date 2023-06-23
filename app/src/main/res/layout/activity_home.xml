@@ -80,7 +80,8 @@
             android:drawablePadding="10dp"
             android:paddingEnd="0dp"
             android:onClick="openChangeDetails"
-            android:contentDescription="@string/student_detail_change_description" />
+            android:contentDescription="@string/student_detail_change_description"
+            android:enabled="false"/>
 
 
 
@@ -108,7 +109,7 @@
           android:textColor="@color/white"
           android:drawableLeft="@drawable/baseline_qr_code_scanner_24"
           android:text="@string/button"
-          android:enabled="true"
+          android:enabled="false"
 
           tools:ignore="MissingConstraints" />
 

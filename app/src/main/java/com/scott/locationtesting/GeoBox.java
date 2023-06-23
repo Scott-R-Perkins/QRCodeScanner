@@ -1,9 +1,7 @@
 package com.scott.locationtesting;
 
 public class GeoBox {
-    //This class is used to determine if the user's location is withing the "box" set by the contains
-    //method. this may need to change based on what corners we use for the box. Consult the 3rd/5th member
-    //when looking to make changes.
+    //This class is used to determine if the user's location is withing the "box" set by the contains method
     private final double swLat;
     private final double swLong;
     private final double neLat;

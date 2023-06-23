@@ -21,6 +21,7 @@ public class AttendanceLog {
 
     }
 
+    //Takes the Date variable and converts it into a specified format
     public String getFormattedTimeLogged() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         return dateFormat.format(timeLogged);
