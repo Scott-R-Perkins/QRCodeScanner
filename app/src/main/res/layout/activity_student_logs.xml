@@ -29,10 +29,11 @@
         app:cardUseCompatPadding="true">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
+            android:layout_width="300dp"
             android:layout_height="match_parent"
             android:scrollbars="vertical"
-            android:id="@+id/my_recyclerView"/>
+            android:id="@+id/my_recyclerView"
+            android:layout_gravity="center"/>
 
     <!--<ListView
         android:layout_width="match_parent"
