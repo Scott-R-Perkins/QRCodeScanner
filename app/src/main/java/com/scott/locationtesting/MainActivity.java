@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                                         studentId = userDTO.getInt("studentId");
                                         //Could be causing an error when logging in as ken bc he doesn't have a studentId? idk
 
-
+//
                                         //Save to database here, Token, userId and userName
                                         dbHelper = new MyDatabaseHelper(MainActivity.this);
                                         dbHelper.insertOrUpdateScanInfo(studentId, token);
