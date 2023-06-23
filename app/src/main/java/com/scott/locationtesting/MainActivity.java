@@ -110,12 +110,6 @@ public class MainActivity extends AppCompatActivity {
                                         dbHelper.insertOrUpdateScanInfo(studentId, token);
                                         dbHelper.insertOrUpdateUserInfo(userName, 0, "Unspecified");
 
-                                       /* if(studentId != 0){
-                                            dbHelper.insertOrUpdateScanInfo(studentId, token);
-                                        } else {
-                                            dbHelper.insertOrUpdateScanInfo(userId, token);
-                                        }*/
-
 
                                         Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                                         startActivity(intent);

@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -47,12 +49,13 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
         long rowId = db.insertWithOnConflict("SCANINFO", null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
-        if (rowId == -1) {
+        if (rowId != -1) {
             return db.update("SCANINFO", values, null, null);
         } else {
             return rowId;
         }
     }
+
 
 
 
@@ -65,7 +68,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         values.put("GENDER", gender);
         long rowId = db.insertWithOnConflict("USERINFO", null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
-        if(rowId == -1){
+        if(rowId != -1){
             return db.update("USERINFO", values, null, null);
         } else {
             return rowId;
@@ -102,35 +105,31 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         return name;
     }
 
-    public String getUserInfo(){
+    public String getUserInfo() {
         StringBuilder userInfoString = new StringBuilder();
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery = "SELECT * FROM USERINFO LIMIT 1";
         Cursor c = db.rawQuery(selectQuery, null);
-        if(c.moveToFirst()){
+        if(c.moveToFirst()) {
             do{
                 int nameIndex = c.getColumnIndex("NAME");
                 if (nameIndex != -1) {
                     userInfoString.append(c.getString(nameIndex));
-                } else {
-                    // Handle error. For example, log an error message or throw an exception
                 }
 
                 int ageIndex = c.getColumnIndex("AGE");
                 if (ageIndex != -1) {
                     userInfoString.append(",").append(c.getString(ageIndex));
-                } else {
-                    // Handle error. For example, log an error message or throw an exception
                 }
+
                 int genderIndex = c.getColumnIndex("GENDER");
                 if(genderIndex != -1){
                     userInfoString.append(",").append(c.getString(genderIndex));
                 }
 
-            } while (c.moveToFirst());
+            } while (c.moveToNext());
         }
         c.close();
-
         return userInfoString.toString();
     }
 
@@ -184,6 +183,8 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
+
+        Collections.reverse(attendanceLogs);
 
         return attendanceLogs;
     }

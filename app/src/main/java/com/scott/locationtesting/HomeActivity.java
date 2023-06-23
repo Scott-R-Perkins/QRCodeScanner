@@ -70,6 +70,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
     public static final String studentId = "";
 
     public MyDatabaseHelper dbHelper;
+    String wasWithinBounds = "False";
 
 
 
@@ -218,41 +219,42 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                             swLat = Double.parseDouble(QRContents[3]), swLong = Double.parseDouble(QRContents[4]);
 
                     double bufferInMeters = 20;
-                    String wasWithinBounds;
                     //Creating the GeoBox
                     GeoBox geoBox = new GeoBox(swLat, swLong, neLat, neLong, bufferInMeters);
 
 
-                    if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
+                    //if (geoBox.contains(currentLocation.getLatitude(), currentLocation.getLongitude())) {
                     //if true just used for easy testing
-                    //if(true){
+                    if(true){
                         //Sends info to sendToWebApi to handle the postrequest
-                        wasWithinBounds = "Within bounds";
+                        wasWithinBounds = "Yes";
                         sendIdToWebApp(Integer.parseInt(QRContents[0]), QRContents[5]);
 
                         // Maybe look at doing a confirmation box here (above the isUserInGeoBox (would make sure the class is correct before
                         // sending attendance.
-                        AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
-                        notAtClassBox.setTitle("Cor' Blimey mate");
-                        notAtClassBox.setMessage("Your attendance for this class has been sent");
+                        /*AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
+                        notAtClassBox.setTitle("Success");
+                        //notAtClassBox.setMessage("Your attendance for this class has been sent");
                         notAtClassBox.setMessage("Your attendance for " + QRContents[5] +" has been sent");
                         notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 dialogInterface.dismiss();
                             }
-                        }).show();
+                        }).show();*/
                     } else {
-                        wasWithinBounds = "Not within bounds";
+                        wasWithinBounds = "No";
+
                         AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
-                        notAtClassBox.setTitle("Cor' Blimey mate");
-                        notAtClassBox.setMessage("Get to class you sneaky little shit.");
+                        notAtClassBox.setTitle("Failed");
+                        notAtClassBox.setMessage("Your location was incorrect, please wait for a location update and try again.");
                         notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 dialogInterface.dismiss();
                             }
                         }).show();
+
                     }
                     // Log attendance here, set text within the If's for the within bounds column
 
@@ -323,7 +325,7 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                     outputStream.close();
 
                     Date currentDate = new Date();
-                    AttendanceLog logItem = new AttendanceLog(Integer.toString(classId), className, currentDate, "True");
+                    AttendanceLog logItem = new AttendanceLog(Integer.toString(classId), className, currentDate, wasWithinBounds);
                     dbHelper.insertIntoAttendancelog(logItem);
 
                     int responseCode = conn.getResponseCode();
@@ -342,20 +344,14 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                         public void run() {
                             AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
                             if (responseCode == HttpURLConnection.HTTP_OK) {
+                                //builder.setTitle("Success");
+                                //builder.setMessage("Response from server: " + response.toString());
                                 builder.setTitle("Success");
-                                builder.setMessage("Response from server: " + response.toString());
+                                builder.setMessage("Your attendance for " + className +" has been sent");
                             } else {
                                 builder.setTitle("Failure");
                                 builder.setMessage("Failed to connect to server. Response Code: " + responseCode);
                                 AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
-                                notAtClassBox.setTitle("SquashinBugs");
-                                notAtClassBox.setMessage("Class id:" + classId + "\nStudent Id:" + finalStudentId);
-                                notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        dialogInterface.dismiss();
-                                    }
-                                }).show();
                             }
                             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override
