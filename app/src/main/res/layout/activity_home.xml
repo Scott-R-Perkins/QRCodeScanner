@@ -108,7 +108,7 @@
           android:textColor="@color/white"
           android:drawableLeft="@drawable/baseline_qr_code_scanner_24"
           android:text="@string/button"
-          android:enabled="false"
+          android:enabled="true"
 
           tools:ignore="MissingConstraints" />
 

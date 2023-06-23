@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">QR Attendance</string>
+    <string name="locationInfo">String.valueOf(MainActivity.latitude) +   + String.valueOf(MainActivity.longitude)</string>
+    <string name="button">Analyse</string>
+    <string name="bg_institute">bg_institute</string>
+    <string name="user_image">userImage</string>
+    <string name="student_name">Nom d\'étudiant</string>
+    <string name="institute_name">Nom de l\'Institut</string>
+    <string name="location_fetch_msg">Obtention de l\'emplacement</string>
+    <string name="student_detail_heading">Modifier vos informations</string>
+    <string name="age_input">Âge</string>
+    <string name="last_name_input">Nom de famille</string>
+    <string name="first_name_input">Prénom</string>
+    <string name="female_input_rg">Mâle</string>
+    <string name="male_input_rg">Femme</string>
+    <string name="edit_student_details">modifier les détails de l\'étudiant</string>
+    <string name="student_detail_change_description">bouton de modification des détails de l\'étudiant</string>
+    <string name="student_log_activity">Ouvre l\'activité de présence des étudiants</string>
+    <string name="attendance_logs_heading">Journaux de présence</string>
+    <string name="attendance">Présence</string>
+    <string name="login">Connexion</string>
+    <string name="password">Mot de passe</string>
+    <string name="email_address">Adresse e-mail</string>
+    <string name="name">Nom</string>
+    <string name="age">Âge</string>
+</resources>
