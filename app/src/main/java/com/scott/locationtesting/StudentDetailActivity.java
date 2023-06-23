@@ -30,8 +30,8 @@ public class StudentDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_student_detail);
 
-        eTName = findViewById(R.id.studentfname_input);
-        eTAge = findViewById(R.id.student_age_input);
+        eTName = findViewById(R.id.editName);
+        eTAge = findViewById(R.id.editAge);
         //eTGender = findViewById(R.id.student_gender_input);
 
         Executor executor = Executors.newSingleThreadExecutor();
