@@ -81,7 +81,7 @@
             android:paddingEnd="0dp"
             android:onClick="openChangeDetails"
             android:contentDescription="@string/student_detail_change_description"
-            android:enabled="false"/>
+            android:enabled="true"/>
 
 
 

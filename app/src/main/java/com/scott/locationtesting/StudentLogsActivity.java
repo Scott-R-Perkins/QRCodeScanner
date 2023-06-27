@@ -25,7 +25,7 @@ public class StudentLogsActivity extends AppCompatActivity {
         dbHelper = new MyDatabaseHelper(this);
         List<AttendanceLog> attendanceLogs = dbHelper.getAttendanceLogs();
 
-        AttendanceLogAdapter adapter = new AttendanceLogAdapter(attendanceLogs);
+        AttendanceLogAdapter adapter = new AttendanceLogAdapter(this, attendanceLogs);
         recyclerView.setAdapter(adapter);
     }
 

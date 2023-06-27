@@ -5,12 +5,20 @@ import java.util.Date;
 import java.util.Locale;
 
 public class AttendanceLog {
+    private int _id;
     private String classId;
     private String className;
     private Date timeLogged;
     private String withinBounds;
 
 
+    public AttendanceLog(int _id, String classId, String className, Date timeLogged, String withinBounds){
+        this._id = _id; //
+        this.classId = classId;
+        this.className = className;
+        this.timeLogged = timeLogged;
+        this.withinBounds = withinBounds;
+    }
     public AttendanceLog(String classId, String className, Date timeLogged, String withinBounds){
         this.classId = classId;
         this.className = className;
@@ -56,5 +64,13 @@ public class AttendanceLog {
 
     public void setTimeLogged(Date timeLogged) {
         this.timeLogged = timeLogged;
+    }
+
+    public int get_id() {
+        return _id;
+    }
+
+    public void set_id(int _id) {
+        this._id = _id;
     }
 }

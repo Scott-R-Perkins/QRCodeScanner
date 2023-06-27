@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,6 +24,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     //classid/class name/student id/scan time
     private static final String DB_NAME = "localData";
     private static final int DB_VERSION = 1;
+    private static final String ATTENDANCELOG = "ATTENDANCELOG";
     //Check with Josh how this works with updating the database with new records, may have to update the version with every new log posted?
     //Should the logs have a smaller compact view in the list, expanding to a bigger more detailed view? or just display classId/Name/Sign in time and id used in the main list view.
 
@@ -145,6 +147,14 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 AttendanceLog log = new AttendanceLog();
+                int idIndex = cursor.getColumnIndex("_id");
+                if (idIndex != -1) {
+                    log.set_id(cursor.getInt(idIndex));
+                } else {
+                    // Handle error. For example, log an error message or throw an exception
+                }
+
+
                 int classIdIndex = cursor.getColumnIndex("CLASSID");
                 if (classIdIndex != -1) {
                     log.setClassId(cursor.getString(classIdIndex));
@@ -190,5 +200,13 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    public void deleteItem(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        String selection = "_id = ?";
+        String[] selectionArgs = { String.valueOf(id) };
+        int deletedRows = db.delete(ATTENDANCELOG, selection, selectionArgs);
+        Log.d("Database", "Deleted rows: " + deletedRows);
+        db.close();
+    }
 
 }
