@@ -48,6 +48,15 @@
           android:contentDescription="@string/user_image"
           android:scaleType="centerCrop"
           android:src="@drawable/user_avatar" />
+
+      <Button
+          android:id="@+id/btnChangeImage"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/edit_image"
+          android:onClick="changeImageOnClick" />
+
+
       <!--                android:background="@drawable/rounded_image"-->
       <LinearLayout
           android:id="@+id/student_name_section"
@@ -128,6 +137,7 @@
           android:text="@string/attendance"
 
           tools:ignore="MissingConstraints" />
+
 
     </RelativeLayout>
 

@@ -18,10 +18,6 @@ import java.util.Locale;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
 
-    //Will probably need 2 databases? or 2 tables. One db/table that stores user/token info, and one for attendance info
-    //user/token info:first/last/age/gender/currentToken
-    //attendance info: create a class to store attendance info and store the variables in the DB? May not need to create an actual attendance object if all the data is being saved in the db.
-    //classid/class name/student id/scan time
     private static final String DB_NAME = "localData";
     private static final int DB_VERSION = 1;
     private static final String ATTENDANCELOG = "ATTENDANCELOG";

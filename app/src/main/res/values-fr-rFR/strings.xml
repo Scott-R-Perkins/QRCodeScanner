@@ -24,4 +24,5 @@
     <string name="email_address">Adresse e-mail</string>
     <string name="name">Nom</string>
     <string name="age">Âge</string>
+    <string name="edit_image">Éditer l\'image</string>
 </resources>

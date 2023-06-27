@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -23,7 +25,7 @@ public class StudentDetailActivity extends AppCompatActivity {
     Cursor c;
     EditText eTName;
     EditText eTAge;
-    EditText eTGender;
+    RadioGroup rBGGender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +34,7 @@ public class StudentDetailActivity extends AppCompatActivity {
 
         eTName = findViewById(R.id.editName);
         eTAge = findViewById(R.id.editAge);
-        //eTGender = findViewById(R.id.student_gender_input);
+        rBGGender = findViewById(R.id.studentgender_input);
 
         Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(new Runnable() {
@@ -50,6 +52,11 @@ public class StudentDetailActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             eTName.setText(name);
                             eTAge.setText(String.valueOf(age));
+                            if (gender.equalsIgnoreCase(getString(R.string.female_input_rg))) {
+                                ((RadioButton) findViewById(R.id.radioButton)).setChecked(true);
+                            } else if (gender.equalsIgnoreCase(getString(R.string.male_input_rg))) {
+                                ((RadioButton) findViewById(R.id.radioButton2)).setChecked(true);
+                            }
                             //eTGender.setText(gender);
                         });
                     } catch (NumberFormatException e) {
@@ -61,7 +68,7 @@ public class StudentDetailActivity extends AppCompatActivity {
     }
 
 
-    public void handleSubmit(View view) {
+  /*  public void handleSubmit(View view) {
         Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(new Runnable() {
             @Override
@@ -77,7 +84,28 @@ public class StudentDetailActivity extends AppCompatActivity {
         });
         Intent intent = new Intent(StudentDetailActivity.this, HomeActivity.class);
         startActivity(intent);
-    }
+    }*/
+  public void handleSubmit(View view) {
+      Executor executor = Executors.newSingleThreadExecutor();
+      executor.execute(new Runnable() {
+          @Override
+          public void run() {
+              String selectedGender = ((RadioButton) findViewById(rBGGender.getCheckedRadioButtonId())).getText().toString();
+
+              MyDatabaseHelper dbHelper = new MyDatabaseHelper(StudentDetailActivity.this);
+              try {
+                  dbHelper.insertOrUpdateUserInfo(eTName.getText().toString(), Integer.parseInt(eTAge.getText().toString()), selectedGender);
+              } catch (NumberFormatException e) {
+                  e.printStackTrace();
+              }
+          }
+      });
+
+      Intent intent = new Intent(StudentDetailActivity.this, HomeActivity.class);
+      intent.putExtra("defaultGender", ((RadioButton) findViewById(rBGGender.getCheckedRadioButtonId())).getText().toString());
+      startActivity(intent);
+  }
+
 
     @Override
     protected void onDestroy() {
