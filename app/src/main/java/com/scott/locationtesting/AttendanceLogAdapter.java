@@ -75,8 +75,6 @@ public class AttendanceLogAdapter extends RecyclerView.Adapter<AttendanceLogAdap
         db.deleteItem(log.get_id());
     }
 
-
-
     @Override
     public int getItemCount() {
         return attendanceLogs.size();

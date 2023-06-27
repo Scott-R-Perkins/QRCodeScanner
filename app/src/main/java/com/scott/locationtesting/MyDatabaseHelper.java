@@ -77,6 +77,18 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+
+    public boolean recordExists(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM USERINFO";
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        if(cursor.getCount()>0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public long insertIntoAttendancelog(AttendanceLog log){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();

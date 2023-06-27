@@ -19,7 +19,6 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
@@ -42,16 +41,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// TODO: 12/06/2023 Fix UI elements to display information to the user. Use Snackbars, change toast to snackbars.
-
-// TODO: 13/06/2023 Look at adding a confirmation box to scanning a code, "Log attendance for x class?" etc
-
-// TODO: 13/06/2023 Look into adding that confirmation, then closing out of the scanner so it looks like something is happening +
-//  lets the user know something is happening, like a snackbar to say its sending information to the server. Display some sort of
-//  loading effect/spinner.
-
-// TODO: 13/06/2023 Some sort of loader that displays a message similar to "Your attendance is being sent to the server"
-// TODO: 20/06/2023 This may not be needed as it sends it pretty quick
 
 // TODO: 16/06/2023 Fix all the null/error checks to actually do something
 
@@ -170,12 +159,11 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
         tVLocation.setTextColor(Color.rgb(0, 200, 0));
         // Look at adding some sort of loader to indicate to users that it is attempting to find the users location
         scanButton.setEnabled(true);
-        // change this to a snackbar
 
-        //val contextView = findViewById<View>(R.id.context_view)
-        //String snackbarLocationData = "Location obtained\nLat: " + latitude +"\nLong: " + longitude;
-        //Snackbar.make(contextView, snackbarLocationData, Snackbar.LENGTH_LONG).show()
-        Toast.makeText(this, "Lat: " + latitude + ", Long: " + longitude, Toast.LENGTH_SHORT).show();
+
+
+        View view = findViewById(android.R.id.content);
+        Snackbar.make(view, "Lat: " + latitude + ", Long: " + longitude, Snackbar.LENGTH_SHORT).show();
     }
 
 
@@ -204,16 +192,9 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
 
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), result -> {
         if (result != null && result.getContents() != null) {
-            //this is where the Code is read and things need to be parsed out + added to the localDB
-            //Need to figure out how we plan to structure the QR code.
             String[] QRContents = result.getContents().split(",");
             if (QRContents.length >= 1) {
                 try {
-                    //Need to see if its possible to pause the startLocationUpdates() method onPause(), unless
-                    //      it already is paused by default
-
-
-
                     // Sets class location data based on the information in the QR code.
                     double neLat = Double.parseDouble(QRContents[1]), neLong = Double.parseDouble(QRContents[2]),
                             swLat = Double.parseDouble(QRContents[3]), swLong = Double.parseDouble(QRContents[4]);
@@ -229,19 +210,6 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                         //Sends info to sendToWebApi to handle the postrequest
                         wasWithinBounds = "Yes";
                         sendIdToWebApp(Integer.parseInt(QRContents[0]), QRContents[5]);
-
-                        // Maybe look at doing a confirmation box here (above the isUserInGeoBox (would make sure the class is correct before
-                        // sending attendance.
-                        /*AlertDialog.Builder notAtClassBox = new AlertDialog.Builder(HomeActivity.this);
-                        notAtClassBox.setTitle("Success");
-                        //notAtClassBox.setMessage("Your attendance for this class has been sent");
-                        notAtClassBox.setMessage("Your attendance for " + QRContents[5] +" has been sent");
-                        notAtClassBox.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialogInterface.dismiss();
-                            }
-                        }).show();*/
                     } else {
                         wasWithinBounds = "No";
 
@@ -272,13 +240,6 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
 
 
 
-
-
-
-
-    //takes in classId from the QR code, then sends it + the studentId and "present" to the database to log attendance.
-
-
     private void sendIdToWebApp(int classId, String className) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
@@ -305,10 +266,8 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
 
 
                     } catch (SQLiteException ex){
-                        //Change this to snackbar
-                        //val contextView = findViewById<View>(R.id.context_view)
-                        //Snackbar.make(contextView, "SQL Error", Snackbar.LENGTH_LONG).show()
-                        Toast.makeText(HomeActivity.this, "SQL Error", Toast.LENGTH_SHORT).show();
+                        View view = findViewById(android.R.id.content);
+                        Snackbar.make(view, "SQL Error", Snackbar.LENGTH_SHORT).show();
                     }
 
                     URL url = new URL("https://schoolattendanceapi.azurewebsites.net/api/Attendance?classId2=" + classId + "&studentId2=" + studentId + "&newAttendanceStatus=" + status );
@@ -384,11 +343,9 @@ public class HomeActivity extends AppCompatActivity implements LocationListener 
                 startLocationUpdates();
             } else {
                 // Permission denied, show an appropriate message
-                // May need to remove the toast, as it doesn't align with material design principals
 
-                //val contextView = findViewById<View>(R.id.context_view)
-                //Snackbar.make(contextView, "SQL Error", Snackbar.LENGTH_LONG).show()
-                Toast.makeText(this, "Location permission is required for this feature.", Toast.LENGTH_SHORT).show();
+                View view = findViewById(android.R.id.content);
+                Snackbar.make(view,"Location permission is required for this feature." , Snackbar.LENGTH_SHORT).show();
             }
         }
     }

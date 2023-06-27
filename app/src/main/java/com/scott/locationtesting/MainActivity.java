@@ -24,7 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-// TODO: 14/06/2023 Figure out if its possible to auto-login the user if they still have an active token
 
 public class MainActivity extends AppCompatActivity {
 
@@ -104,15 +103,20 @@ public class MainActivity extends AppCompatActivity {
                                         studentId = userDTO.getInt("studentId");
                                         //Could be causing an error when logging in as ken bc he doesn't have a studentId? idk
 
-//
+
                                         //Save to database here, Token, userId and userName
                                         dbHelper = new MyDatabaseHelper(MainActivity.this);
                                         dbHelper.insertOrUpdateScanInfo(studentId, token);
-                                        dbHelper.insertOrUpdateUserInfo(userName, 0, "Unspecified");
 
-
-                                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                                        startActivity(intent);
+                                        //if UserInfo does not contain a row, direct user to the edit information page
+                                        if(dbHelper.recordExists()){
+                                            Intent intentHome = new Intent(MainActivity.this, HomeActivity.class);
+                                            startActivity(intentHome);
+                                        }
+                                        else{
+                                            Intent intentEditDetails = new Intent(MainActivity.this, StudentDetailActivity.class);
+                                            startActivity(intentEditDetails);
+                                        }
                                     }
                                 }
                                     progressBar.setVisibility(View.GONE);
