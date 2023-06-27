@@ -51,7 +51,9 @@
 
       <Button
           android:id="@+id/btnChangeImage"
+          android:layout_below="@+id/imageView2"
           android:layout_width="wrap_content"
+          android:layout_centerHorizontal="true"
           android:layout_height="wrap_content"
           android:text="@string/edit_image"
           android:onClick="changeImageOnClick" />
@@ -62,7 +64,7 @@
           android:id="@+id/student_name_section"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:layout_below="@+id/imageView2"
+          android:layout_below="@+id/btnChangeImage"
           android:layout_marginTop="15dp"
           android:gravity="center_horizontal">
 
